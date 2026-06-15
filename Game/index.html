@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dungeon Logic</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="scene-shell">
+      <div class="backdrop" aria-hidden="true">
+        <div class="pixel-grid"></div>
+        <div class="glow-orb glow-left"></div>
+        <div class="glow-orb glow-right"></div>
+        <div class="stalactites stalactites-left"></div>
+        <div class="stalactites stalactites-center"></div>
+        <div class="stalactites stalactites-right"></div>
+        <div class="crystal crystal-left"></div>
+        <div class="crystal crystal-right"></div>
+        <div class="vault vault-left"></div>
+        <div class="vault vault-center"></div>
+        <div class="vault vault-right"></div>
+        <div class="stone-pillar stone-pillar-left"></div>
+        <div class="stone-pillar stone-pillar-right"></div>
+        <div class="rock-cluster rock-cluster-left"></div>
+        <div class="rock-cluster rock-cluster-right"></div>
+        <div class="cave-ridge cave-ridge-top"></div>
+        <div class="cave-ridge cave-ridge-bottom"></div>
+        <div class="lava-river"></div>
+        <div class="lava-falls lava-falls-left"></div>
+        <div class="lava-falls lava-falls-right"></div>
+        <div class="lava-sparks"></div>
+        <div class="lava-reflection"></div>
+        <div class="fog fog-one"></div>
+        <div class="fog fog-two"></div>
+        <div class="dust-field" id="dustField"></div>
+      </div>
+
+      <main class="menu-stage">
+        <div class="torch torch-left" aria-hidden="true">
+          <div class="torch-metal"></div>
+          <div class="torch-fire"></div>
+        </div>
+        <div class="torch torch-right" aria-hidden="true">
+          <div class="torch-metal"></div>
+          <div class="torch-fire"></div>
+        </div>
+
+        <section class="menu-panel">
+          <p class="eyebrow">Pixel dungeon puzzle adventure</p>
+
+          <div class="title-plaque">
+            <span class="title-small">Enter the cavern of</span>
+            <h1>Dungeon Logic</h1>
+          </div>
+
+          <p class="tagline">Choose the right well, solve the wall, and descend deeper into the firelit mine.</p>
+
+          <div class="menu-actions">
+            <button class="menu-button menu-button-primary menu-button-play" id="startButton" type="button">
+              Play Game
+            </button>
+            <div class="menu-utility-row">
+              <button class="menu-button menu-button-secondary" id="soundButton" type="button" aria-pressed="true">
+                Sound: On
+              </button>
+              <button class="menu-button menu-button-secondary" id="musicButton" type="button" aria-pressed="true">
+                Music: On
+              </button>
+            </div>
+          </div>
+
+          <section class="instruction-panel" aria-labelledby="instructionsTitle">
+            <p class="instruction-label">How to play</p>
+            <h2 id="instructionsTitle">Think clearly before you fall</h2>
+            <ol class="instruction-list">
+              <li>Read the math problem written on the cave wall.</li>
+              <li>Look at the three wells and the answers above them.</li>
+              <li>Choose the one correct answer to survive the descent.</li>
+              <li>If you are right, you continue to the next level.</li>
+              <li>If you are wrong, the hero crashes and the game starts again.</li>
+            </ol>
+            <p class="instruction-note">
+              Levels 1 to 4 use addition. From Level 5, subtraction begins. Levels 9 and 10 introduce binary
+              numbers.
+            </p>
+          </section>
+
+          <div class="status-bar" aria-live="polite">
+            <span class="status-rune"></span>
+            <p id="statusText">The lava glows below. Level 1 is waiting for the first brave answer.</p>
+          </div>
+        </section>
+      </main>
+
+      <main class="game-stage" id="gameStage" hidden>
+        <section class="game-shell">
+          <header class="hud-bar">
+            <button class="hud-button" id="backToMenuButton" type="button">Menu</button>
+            <div class="hud-center">
+              <p class="hud-label">Dungeon Logic</p>
+              <h2 id="levelTitle">Level 1</h2>
+            </div>
+            <p class="hud-side-text">Choose the correct well</p>
+          </header>
+
+          <section class="chamber-panel" id="chamberPanel">
+            <div class="wall-equation">
+              <p class="wall-label">Carved on the wall</p>
+              <div class="wall-problem" id="problemText">2 + 3 = ?</div>
+            </div>
+
+            <div class="playfield">
+              <div class="chamber-stalactites"></div>
+              <div class="chamber-rocks chamber-rocks-left"></div>
+              <div class="chamber-rocks chamber-rocks-right"></div>
+              <div class="chamber-lava-crack chamber-lava-crack-left"></div>
+              <div class="chamber-lava-crack chamber-lava-crack-right"></div>
+              <div class="hero-platform">
+                <div class="hero" id="hero">
+                  <span class="hero-helmet"></span>
+                  <span class="hero-lamp"></span>
+                  <span class="hero-head"></span>
+                  <span class="hero-beard"></span>
+                  <span class="hero-body"></span>
+                  <span class="hero-pack"></span>
+                  <span class="hero-belt"></span>
+                  <span class="hero-tool-handle"></span>
+                  <span class="hero-tool-head"></span>
+                  <span class="hero-arm hero-arm-left"></span>
+                  <span class="hero-arm hero-arm-right"></span>
+                  <span class="hero-leg hero-leg-left"></span>
+                  <span class="hero-leg hero-leg-right"></span>
+                  <span class="hero-boot hero-boot-left"></span>
+                  <span class="hero-boot hero-boot-right"></span>
+                </div>
+                <div class="platform-stone"></div>
+              </div>
+
+              <div class="wells-row" id="wellsRow">
+                <button class="well-choice" id="well0" type="button" data-index="0">
+                  <span class="well-signpost">
+                    <span class="well-sign">4</span>
+                    <span class="well-post"></span>
+                  </span>
+                  <span class="well-glow"></span>
+                  <span class="well-mouth"></span>
+                  <span class="well-depth"></span>
+                </button>
+                <button class="well-choice" id="well1" type="button" data-index="1">
+                  <span class="well-signpost">
+                    <span class="well-sign">5</span>
+                    <span class="well-post"></span>
+                  </span>
+                  <span class="well-glow"></span>
+                  <span class="well-mouth"></span>
+                  <span class="well-depth"></span>
+                </button>
+                <button class="well-choice" id="well2" type="button" data-index="2">
+                  <span class="well-signpost">
+                    <span class="well-sign">6</span>
+                    <span class="well-post"></span>
+                  </span>
+                  <span class="well-glow"></span>
+                  <span class="well-mouth"></span>
+                  <span class="well-depth"></span>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section class="level-panel">
+            <p class="level-label">Level Status</p>
+            <p class="level-message" id="levelMessage">Read the wall. Choose the one correct answer.</p>
+          </section>
+        </section>
+      </main>
+
+      <section class="outcome-overlay" id="outcomeOverlay" hidden>
+        <div class="outcome-card" id="outcomeCard">
+          <p class="outcome-label" id="outcomeLabel">Run Result</p>
+          <h2 class="outcome-title" id="outcomeTitle">Game Over</h2>
+          <p class="outcome-message" id="outcomeMessage">The mine swallows the careless.</p>
+          <div class="outcome-actions">
+            <button class="hud-button outcome-button-primary" id="outcomePrimaryButton" type="button">
+              Restart Run
+            </button>
+            <button class="hud-button" id="outcomeMenuButton" type="button">Main Menu</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="./main.js"></script>
+  </body>
+</html>

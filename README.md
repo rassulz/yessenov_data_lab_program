@@ -1,0 +1,1 @@
+Yessenov Data Lab Program is about 4 week intensive program, where we are learning about Machine Learning and Data Sience. 

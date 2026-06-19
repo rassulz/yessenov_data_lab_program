@@ -1,0 +1,13 @@
+# Foundation brand look (see CLAUDE.md "UI style").
+[theme]
+primaryColor = "#79378b"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f4f1f7"
+textColor = "#32373c"
+font = "sans serif"
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false

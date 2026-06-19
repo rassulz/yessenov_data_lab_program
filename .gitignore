@@ -1,0 +1,22 @@
+# Secrets — NEVER commit real API keys
+**/.streamlit/secrets.toml
+*.env
+.env
+.env.*
+
+# Project brief PDF contains the shared MailerSend key — keep out of git
+Day5/YDL2026_day5_project.pdf
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# RAG index / scraped data cache (optional, can be rebuilt)
+Day5/data/index/
+
+# Scratch / temp exploration files
+Day5/_*
+

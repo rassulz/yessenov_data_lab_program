@@ -1,0 +1,22 @@
+# Yessenov Foundation Grants AI Assistant — Day 5 final project
+# Python 3.9+ . Install:  python -m venv .venv && .venv/Scripts/pip install -r requirements.txt
+
+# UI
+streamlit>=1.40
+
+# LLM + embeddings (OpenAI-compatible API on alem.ai)
+openai>=1.50
+
+# Data / RAG
+numpy>=1.24
+pandas>=2.0
+altair>=5.0
+
+# Scraping
+requests>=2.31
+beautifulsoup4>=4.12
+lxml>=5.0
+pypdf>=4.0
+
+# Email (optional feature)
+mailersend>=0.5

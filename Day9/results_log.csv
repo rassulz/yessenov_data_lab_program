@@ -9,3 +9,4 @@ step,model,feature_set,oof_macro_f1,f1_Wake,f1_Light,f1_Deep,f1_REM,notes
 06_submit,SoftVotingEnsemble,catboost_tuned+rf+et+gb,0.81952,0.8448,0.8455,0.7652,0.8226,sub02 (diverse safety): sub02_SoftVotingEnsemble_CatBoost-RandomForest-ExtraTrees-GradientBoosting.csv
 07_robustness,catboost_repeatedCV,features_v1,0.82598,0.8513,0.8492,0.7734,0.8301,GATE mean+/-std over 5x5; std=0.00169
 07_robustness,catboost_seedbag_K9,features_v1,0.82415,0.849,0.8468,0.7726,0.8282,K=9 seeds; single=0.82898; seed_std=0.00203
+08_ensemble,catboost_diversity_ensemble,features_v1,0.82324,0.8495,0.8469,0.7694,0.8271,equal-wt 6 CatBoosts; vs anchor 0.82898 (-0.00574); disag=0.037

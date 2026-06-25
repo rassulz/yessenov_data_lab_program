@@ -1,7 +1,7 @@
 """
 run_all.py — one-command reproducible rerun of the whole pipeline.
 
-It (1) regenerates the 7 notebooks from build_notebooks.py (single source of
+It (1) regenerates the 8 notebooks from build_notebooks.py (single source of
 truth) and (2) executes them in order, writing results back into the notebooks
 so the outputs/plots are preserved for the defense.
 
@@ -25,6 +25,7 @@ ORDER = [
     "05_tune_blend.ipynb",
     "06_submit.ipynb",
     "07_robustness.ipynb",
+    "08_catboost_ensemble.ipynb",
 ]
 
 

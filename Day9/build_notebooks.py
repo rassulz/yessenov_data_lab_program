@@ -835,6 +835,125 @@ nb07 = make_nb([
 ])
 
 # ===========================================================================
+# 08_catboost_ensemble.ipynb  (CatBoost-only diversity ensemble)
+# ===========================================================================
+# The earlier soft-vote of CatBoost+RF+ET+GB lost because RF/ET/GB are weak
+# (0.79-0.81). Here every member is a STRONG CatBoost (~0.82-0.83) made diverse
+# structurally: depth in {5,6,7,8}, one MultiClassOneVsAll head, one rsm=0.7
+# column-subsampled model. Combine by SIMPLE equal-weight probability averaging
+# (no OOF weight search -- it collapsed to CatBoost=1.0 before and overfits the
+# 0.0017 noise floor). Judge the result against the repeated-CV gate from 07.
+nb08 = make_nb([
+    md("# 08 — CatBoost-only diversity ensemble\n"
+       "The 04/06 soft-vote failed because RF/ET/GB are individually weak (0.79–0.81) and dragged "
+       "the average down. A useful ensemble needs members that are **both strong and decorrelated**. "
+       "Here every member is a strong CatBoost (~0.82–0.83), made diverse *structurally*:\n"
+       "- depth ∈ {5, 6, 7, 8} (different bias/variance trade-offs),\n"
+       "- one `MultiClassOneVsAll` head (decouples the per-class gradient from the softmax),\n"
+       "- one `rsm=0.7` column-subsampled model (random-subspace decorrelation).\n\n"
+       "Combine by **equal-weight** probability averaging — *no* OOF weight search (it collapsed to "
+       "CatBoost=1.0 before and would just overfit the ±0.0017 noise floor measured in 07). We judge "
+       "the ensemble strictly against the repeated-CV **gate**: it is a real gain only if it beats the "
+       "single deployed model on the same folds by more than ~1σ."),
+    code(TOOLBOX),
+    code(LOG_HELPER),
+    code('from catboost import CatBoostClassifier\n'
+         'import itertools\n'
+         'cols = json.load(open(ART / "feature_cols.json"))["columns"]\n'
+         'Xtr = pd.DataFrame(np.load(ART / "features_v1_train.npy"), columns=cols)\n'
+         'Xte = pd.DataFrame(np.load(ART / "features_v1_test.npy"), columns=cols)\n'
+         'y = np.load(ART / "y_train.npy")\n'
+         'test_ids = np.load(ART / "test_ids.npy")\n'
+         'folds = load_folds()\n'
+         'gate = json.load(open(ART / "repeated_cv_gate.json"))\n'
+         'print("features_v1:", Xtr.shape[1], "cols | gate:", gate["mean"], "+/-", gate["std"])\n'
+         '\n'
+         'def norm_rows(p):\n'
+         '    """Row-normalize to sum 1 (MultiClassOneVsAll probs need it; no-op for softmax)."""\n'
+         '    s = p.sum(1, keepdims=True)\n'
+         '    return p / np.where(s == 0, 1.0, s)\n'
+         '\n'
+         'def make_member(depth=6, loss="MultiClass", rsm=None, seed=SEED):\n'
+         '    kw = dict(loss_function=loss, eval_metric="TotalF1:average=Macro",\n'
+         '        iterations=3000, learning_rate=0.03, depth=depth, l2_leaf_reg=3.0,\n'
+         '        random_seed=seed, od_type="Iter", od_wait=150, use_best_model=True,\n'
+         '        thread_count=-1, allow_writing_files=False, verbose=False)\n'
+         '    if rsm is not None:\n'
+         '        kw["rsm"] = rsm\n'
+         '    return CatBoostClassifier(**kw)'),
+    md("## Train the diverse members (same folds, OOF harness)\nEach member runs through the shared "
+       "`run_oof` on the saved folds, so all OOF/test matrices are row-aligned and averageable. The "
+       "`cat_d6` member is the exact deployed config — our anchor for the gate comparison."),
+    code('MEMBERS = [\n'
+         '    ("cat_d6",  dict(depth=6, loss="MultiClass")),                 # anchor (= sub01 config)\n'
+         '    ("cat_d5",  dict(depth=5, loss="MultiClass")),\n'
+         '    ("cat_d7",  dict(depth=7, loss="MultiClass")),\n'
+         '    ("cat_d8",  dict(depth=8, loss="MultiClass")),\n'
+         '    ("cat_ova", dict(depth=6, loss="MultiClassOneVsAll")),         # one-vs-all head\n'
+         '    ("cat_rsm", dict(depth=6, loss="MultiClass", rsm=0.7, seed=123)),  # column subsampling\n'
+         ']\n'
+         'm_oof, m_test, m_macro = {}, {}, {}\n'
+         'for name, cfg in MEMBERS:\n'
+         '    oof, tst, mac, _ = run_oof(lambda c=cfg: make_member(**c), Xtr, y, Xte, folds,\n'
+         '                               needs_impute=False, use_eval_set=True)\n'
+         '    m_oof[name], m_test[name] = norm_rows(oof), norm_rows(tst)\n'
+         '    m_macro[name] = mac\n'
+         '    print(f"  {name:<8} {str(cfg):<55} OOF macro-F1 = {mac:.5f}")'),
+    md("## Equal-weight ensemble + diversity check\nSimple mean of the member probabilities. We also "
+       "report mean pairwise prediction **disagreement** — the ensemble can only help to the extent "
+       "members actually disagree."),
+    code('names = [n for n, _ in MEMBERS]\n'
+         'ens_oof = sum(m_oof[n] for n in names) / len(names)\n'
+         'ens_test = sum(m_test[n] for n in names) / len(names)\n'
+         'ens_macro = macro_f1(y, ens_oof.argmax(1))\n'
+         '\n'
+         'preds = {n: m_oof[n].argmax(1) for n in names}\n'
+         'dis = [float((preds[a] != preds[b]).mean()) for a, b in itertools.combinations(names, 2)]\n'
+         'anchor = m_macro["cat_d6"]                     # single deployed model, same folds\n'
+         'print("member OOF macro-F1:", {n: round(m_macro[n], 5) for n in names})\n'
+         'print("mean pairwise disagreement:", round(float(np.mean(dis)), 4))\n'
+         'print(f"\\nENSEMBLE OOF macro-F1 = {ens_macro:.5f}")\n'
+         'print(f"anchor (single cat_d6) = {anchor:.5f}   delta = {ens_macro - anchor:+.5f}")\n'
+         'print(f"gate noise floor (1 sigma) = {gate[\'std\']:.5f}")\n'
+         'real = ens_macro > anchor + gate["std"]\n'
+         'print("=> real gain beyond noise?", bool(real),\n'
+         '      "(need >", round(anchor + gate["std"], 5), ")")\n'
+         'print("ensemble per-class F1:", per_class_f1(y, ens_oof.argmax(1)))\n'
+         'np.save(ART / "cat_ensemble_oof.npy", ens_oof)\n'
+         'np.save(ART / "cat_ensemble_test.npy", ens_test)\n'
+         'json.dump({"members": names, "member_macro": {n: round(m_macro[n], 5) for n in names},\n'
+         '           "ensemble_macro": round(float(ens_macro), 5), "anchor": round(float(anchor), 5),\n'
+         '           "mean_disagreement": round(float(np.mean(dis)), 4),\n'
+         '           "beats_gate": bool(real)}, open(ART / "cat_ensemble.json", "w"), indent=2)\n'
+         'log_result("08_ensemble", "catboost_diversity_ensemble", "features_v1", ens_macro,\n'
+         '           per_class_f1(y, ens_oof.argmax(1)),\n'
+         '           f"equal-wt {len(names)} CatBoosts; vs anchor {anchor:.5f} ({ens_macro-anchor:+.5f}); '
+         'disag={np.mean(dis):.3f}")'),
+    md("## Submission (`sub04`) — diverse CatBoost-family hedge\nWritten as a candidate private-LB "
+       "safety submission (single algorithm family, clean to defend). Whether it becomes a *final* "
+       "pick depends on the gate verdict above — if it does not beat the anchor by >1σ it is a "
+       "diversity hedge, not an improvement."),
+    code('name4 = "sub04_CatBoostDiversityEnsemble_GBDT.csv"\n'
+         'pred4 = ens_test.argmax(1).astype(int)\n'
+         'sub4 = pd.DataFrame({"id": test_ids, "sleep_stage": pred4})\n'
+         'assert sub4.shape == (5000, 2)\n'
+         'assert sub4["id"].tolist() == list(range(9000, 14000))\n'
+         'assert sub4["sleep_stage"].isin(CLASSES).all()\n'
+         'sub4.to_csv(SUB / name4, index=False)\n'
+         'print("wrote", SUB / name4, "| OOF macro-F1:", round(ens_macro, 5))\n'
+         'print("class counts:", sub4["sleep_stage"].value_counts().sort_index().to_dict())\n'
+         'single_test = np.load(ART / "catboost_tuned_test.npy")\n'
+         'diff = int((ens_test.argmax(1) != single_test.argmax(1)).sum())\n'
+         'print(f"ensemble vs single-CatBoost (sub01) test preds differ on {diff} of 5000 rows")'),
+    md("### Takeaways\n"
+       "- Members are all CatBoost on the same features, so they stay fairly correlated; equal-weight "
+       "averaging smooths variance but, near this synthetic ceiling, is expected to land **within the "
+       "±0.0017 gate noise** of the single model — an honest result, not a failure.\n"
+       "- Kept as a single-algorithm-family **diversity hedge** (`sub04`). The single CatBoost (`sub01`) "
+       "and the seed-bag (`sub03`) remain the primary private-LB pair unless `sub04` beats the gate."),
+])
+
+# ===========================================================================
 # Write all notebooks
 # ===========================================================================
 NOTEBOOKS = {
@@ -845,6 +964,7 @@ NOTEBOOKS = {
     "05_tune_blend.ipynb": nb05,
     "06_submit.ipynb": nb06,
     "07_robustness.ipynb": nb07,
+    "08_catboost_ensemble.ipynb": nb08,
 }
 
 if __name__ == "__main__":

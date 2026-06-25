@@ -1,0 +1,22 @@
+{
+  "members": [
+    "cat_d6",
+    "cat_d5",
+    "cat_d7",
+    "cat_d8",
+    "cat_ova",
+    "cat_rsm"
+  ],
+  "member_macro": {
+    "cat_d6": 0.82898,
+    "cat_d5": 0.82152,
+    "cat_d7": 0.82678,
+    "cat_d8": 0.82573,
+    "cat_ova": 0.82273,
+    "cat_rsm": 0.82466
+  },
+  "ensemble_macro": 0.82324,
+  "anchor": 0.82898,
+  "mean_disagreement": 0.037,
+  "beats_gate": false
+}

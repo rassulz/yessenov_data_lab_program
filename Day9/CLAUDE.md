@@ -122,16 +122,19 @@ Full table in `results_log.csv`.
 | 06 submit | SoftVotingEnsemble (sub02) | all 4 models | 0.81952 | .845/.846/.765/.823 |
 | 07 robust | CatBoost RepeatedCV **(gate)** | features_v1 | **0.82598 ± 0.00169** | .851/.849/.773/.830 |
 | 07 robust | CatBoost seed-bag (K=9, sub03) | features_v1 | 0.82415 | .849/.847/.773/.828 |
+| 08 ensemble | CatBoost diversity ens. (sub04) | features_v1 | 0.82324 | .850/.847/.769/.827 |
 
 Public LB (uploaded; private 70% decides — do NOT tune to these):
 | sub | OOF macro-F1 | public LB |
 |-----|--------------|-----------|
 | sub01 CatBoost (single, features_v1) | 0.82898 | **0.83026** |
 | sub00 CatBoost baseline (raw21) | 0.82494 | 0.82809 |
+| sub03 CatBoost seed-bag K=9 | 0.82415 | 0.82820 |
 | sub02 SoftVotingEnsemble | 0.81952 | 0.82478 |
-| sub03 CatBoost seed-bag K=9 | 0.82415 | (not yet uploaded) |
-Public LB ordering == OOF ordering → local CV is trustworthy; the soft-voting ensemble
-genuinely hurts (confirmed on the public split too).
+| sub04 CatBoost diversity ensemble | 0.82324 | (not yet uploaded) |
+Public LB ordering == OOF ordering → local CV is trustworthy. sub03 (seed-bag) public 0.82820 <
+sub01 0.83026: seed 42 is lucky on the public split too; the bag's value is private-LB variance
+reduction, not a higher public number. The soft-voting ensemble genuinely hurts (confirmed on public).
 
 Findings:
 - **Best = CatBoost (GBDT)** on `features_v1` = raw 21 + `eog_burst_missing` + band
@@ -163,6 +166,13 @@ Robustness (step 07 — added after public LB confirmed OOF; honest near-ceiling
   within-class overlap in the synthetic data, partly irreducible.
 - Stacking the existing 4 OOF matrices (LR meta-learner) = 0.8243; any weight on RF/ET/GB drags
   CatBoost down → ensemble headroom needs a *new strong diverse* learner, not the weak trees.
+- **CatBoost-only diversity ensemble (step 08, sub04)** — 6 strong members (depth 5/6/7/8 +
+  `MultiClassOneVsAll` head + `rsm=0.7`), equal-weight averaged. Members .8215–.8290; ensemble
+  **0.82324**, i.e. −0.00574 vs the single deployed model (beyond the ±0.0017 gate → a real,
+  not-noise *decrease*). Mean pairwise disagreement only **3.7%**: same algorithm on the same
+  features makes correlated errors, so averaging just pulls toward the (weaker-than-the-lucky-
+  anchor) member mean. Confirmed negative — `sub04` is a documented diversity hedge, **not** a
+  final pick. Same lesson as the seed-bag: averaging removes the anchor's luck, lands at honest center.
 - **Final private-LB pair recommendation:** `sub01` (single CatBoost, deterministic reference,
   higher-variance, best public 0.83026) + `sub03` (seed-bag, variance-reduced, honest ~0.826).
   `sub02` (soft-voting) is demoted — strictly worse on both OOF and public LB.

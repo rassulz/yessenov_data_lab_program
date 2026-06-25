@@ -105,7 +105,7 @@ Lead with what the user just learned (better for the "best approach" defense):
 - Fix all seeds. Pipeline must rerun with one command for the "best approach" prize.
 
 ## Log (CV macro-F1 / public LB)
-Pipeline = 6 notebooks (`01_eda` → `06_submit`), one-command rerun via
+Pipeline = 7 notebooks (`01_eda` → `07_robustness`), one-command rerun via
 `C:/ProgramData/anaconda3/python.exe run_all.py`. Folds: StratifiedKFold(5, shuffle,
 seed=42), shared via `artifacts/folds.npz`. Primary metric = global OOF macro-F1.
 Full table in `results_log.csv`.
@@ -120,6 +120,18 @@ Full table in `results_log.csv`.
 | 04 models | RandomForest | features_v1 | 0.79203 | .820/.823/.727/.799 |
 | 06 submit | **CatBoost (sub01)** | features_v1 | **0.82898** | .852/.851/.777/.837 |
 | 06 submit | SoftVotingEnsemble (sub02) | all 4 models | 0.81952 | .845/.846/.765/.823 |
+| 07 robust | CatBoost RepeatedCV **(gate)** | features_v1 | **0.82598 ± 0.00169** | .851/.849/.773/.830 |
+| 07 robust | CatBoost seed-bag (K=9, sub03) | features_v1 | 0.82415 | .849/.847/.773/.828 |
+
+Public LB (uploaded; private 70% decides — do NOT tune to these):
+| sub | OOF macro-F1 | public LB |
+|-----|--------------|-----------|
+| sub01 CatBoost (single, features_v1) | 0.82898 | **0.83026** |
+| sub00 CatBoost baseline (raw21) | 0.82494 | 0.82809 |
+| sub02 SoftVotingEnsemble | 0.81952 | 0.82478 |
+| sub03 CatBoost seed-bag K=9 | 0.82415 | (not yet uploaded) |
+Public LB ordering == OOF ordering → local CV is trustworthy; the soft-voting ensemble
+genuinely hurts (confirmed on the public split too).
 
 Findings:
 - **Best = CatBoost (GBDT)** on `features_v1` = raw 21 + `eog_burst_missing` + band
@@ -136,9 +148,29 @@ Findings:
 - Reproducibility verified: CatBoost is deterministic (same run twice → bit-identical
   probabilities, best_iter 921=921); all seeds fixed; folds persisted.
 
+Robustness (step 07 — added after public LB confirmed OOF; honest near-ceiling result):
+- **Repeated-CV gate** `RepeatedStratifiedKFold(5×5)` = **0.82598 ± 0.00169** (5 repeats:
+  .82898/.82389/.82509/.82627/.82567). So the canonical-fold + seed-42 number **0.82898 is
+  ~+0.003 of combined fold+seed luck** above the true ~0.826. The std (≈0.0017) is now the
+  accept/reject **noise floor**: no FE/ensemble tweak gaining < ~0.003–0.005 OOF is real.
+- **Seed-bag (K=9)** per-seed OOF spans .822–.829 (std .00203); **seed 42 is the *best* of the
+  9** by luck. The bag = **0.82415** ≈ the de-noised central estimate. So bagging does *not*
+  raise OOF (it can't beat the lucky seed) — its payoff is **variance reduction / private-LB
+  stability**, an honest textbook-bagging result, not a score chase.
+- Error structure (OOF confusion): Deep errors are **diffuse** (≈evenly to Wake/Light/REM,
+  both directions) and **72% of all errors are confident** (top1−top2 margin ≥0.15) → threshold
+  / prior shifting has a tiny ceiling (consistent with the identity result). The ~0.83 wall is
+  within-class overlap in the synthetic data, partly irreducible.
+- Stacking the existing 4 OOF matrices (LR meta-learner) = 0.8243; any weight on RF/ET/GB drags
+  CatBoost down → ensemble headroom needs a *new strong diverse* learner, not the weak trees.
+- **Final private-LB pair recommendation:** `sub01` (single CatBoost, deterministic reference,
+  higher-variance, best public 0.83026) + `sub03` (seed-bag, variance-reduced, honest ~0.826).
+  `sub02` (soft-voting) is demoted — strictly worse on both OOF and public LB.
+
 Submissions (`submissions/`, format `id,sleep_stage`, 5000 rows, ids 9000–13999):
-- `sub01_CatBoost_GBDT.csv` — **primary pick**, OOF 0.82898.
+- `sub01_CatBoost_GBDT.csv` — **primary pick**, OOF 0.82898, **public 0.83026**.
+- `sub03_CatBoostSeedBagK9_GBDT.csv` — **variance-reduced safety** (K=9 seed-bag), OOF 0.82415.
+  Recommended private-LB hedge in place of sub02.
 - `sub02_SoftVotingEnsemble_CatBoost-RandomForest-ExtraTrees-GradientBoosting.csv`
-  — diverse safety net, OOF 0.81952 (differs from sub01 on 206/5000 rows).
-- `sub00_catboost_baseline.csv` — first end-to-end sanity submission.
-- Public LB: (fill in after upload — do NOT tune to it; private 70% decides.)
+  — diverse but strictly worse, OOF 0.81952, public 0.82478 (demoted).
+- `sub00_catboost_baseline.csv` — first end-to-end sanity submission, public 0.82809.

@@ -691,6 +691,150 @@ nb06 = make_nb([
 ])
 
 # ===========================================================================
+# 07_robustness.ipynb  (private-LB hardening)
+# ===========================================================================
+# Two robustness steps the OOF≈public-LB result motivates (gains are tiny near
+# this synthetic ceiling, so the real win is a TRUSTWORTHY metric + a
+# LOWER-VARIANCE final model):
+#   1. Repeated CV gate: RepeatedStratifiedKFold(5x5) -> mean +/- std of OOF
+#      macro-F1. The std is the noise floor; only accept a future change whose
+#      OOF gain clearly exceeds it. Pure risk-reducer (cannot leak/overfit).
+#   2. Seed-bagged CatBoost: average predict_proba over K=9 seeds of the exact
+#      deployed config. Diagnostic first (per-seed OOF spread); then the bag.
+#      Variance reduction (textbook bagging) -> private-LB stability. Written as
+#      sub03; the single-seed CatBoost stays the documented reference (sub01).
+nb07 = make_nb([
+    md("# 07 — Robustness: repeated-CV gate + seed-bagged CatBoost\n"
+       "Public LB (0.83026) ≈ OOF (0.82898): the model is **not** overfit, but headroom is tiny "
+       "and the error structure shows the weak Deep class is diffuse, confident overlap (partly "
+       "irreducible synthetic noise). So the highest-value moves left are not a cleverer model but "
+       "**(1)** a de-noised metric we can trust for accept/reject decisions, and **(2)** a "
+       "lower-variance final model for the private 70% split.\n\n"
+       "- **Repeated CV gate** — `RepeatedStratifiedKFold(5×5)` → mean ± std OOF macro-F1. The std "
+       "is the noise floor: only keep a future change if its OOF gain clearly beats it.\n"
+       "- **Seed-bagged CatBoost** — average `predict_proba` over K=9 seeds of the *exact* deployed "
+       "config (textbook bagging from the course). Pure variance reduction; cannot widen the CV–LB gap."),
+    code(TOOLBOX),
+    code(LOG_HELPER),
+    code('from catboost import CatBoostClassifier\n'
+         'cols = json.load(open(ART / "feature_cols.json"))["columns"]\n'
+         'Xtr = pd.DataFrame(np.load(ART / "features_v1_train.npy"), columns=cols)\n'
+         'Xte = pd.DataFrame(np.load(ART / "features_v1_test.npy"), columns=cols)\n'
+         'y = np.load(ART / "y_train.npy")\n'
+         'test_ids = np.load(ART / "test_ids.npy")\n'
+         'folds = load_folds()\n'
+         '# Use the EXACT config sub01 deployed (tuning kept the defaults).\n'
+         'bp = json.load(open(ART / "catboost_best_params.json"))\n'
+         'print("deployed CatBoost config:", bp, "| features_v1:", Xtr.shape[1], "cols")\n'
+         '\n'
+         'def make_cat(seed=SEED):\n'
+         '    kw = dict(loss_function="MultiClass", eval_metric="TotalF1:average=Macro",\n'
+         '        iterations=3000, learning_rate=bp["lr"], depth=bp["depth"], l2_leaf_reg=bp["l2"],\n'
+         '        random_seed=seed, od_type="Iter", od_wait=150, use_best_model=True,\n'
+         '        thread_count=-1, allow_writing_files=False, verbose=False)\n'
+         '    if bp.get("balanced"):\n'
+         '        kw["auto_class_weights"] = "Balanced"\n'
+         '    return CatBoostClassifier(**kw)'),
+    md("## 1. Repeated-CV gate (`RepeatedStratifiedKFold(5×5)`)\n"
+       "Single 5-fold OOF noise is on the same order as the gains we chase (thousandths), so "
+       "selecting on one split risks picking a lucky-split model that regresses on the private LB. "
+       "We run 5 independent 5-fold splits (25 fits) and report the mean and **std** of the global "
+       "OOF macro-F1. That std is the accept/reject threshold for every later experiment."),
+    code('from sklearn.model_selection import RepeatedStratifiedKFold\n'
+         'N_REPEATS = 5\n'
+         'rskf = RepeatedStratifiedKFold(n_splits=N_FOLDS, n_repeats=N_REPEATS, random_state=SEED)\n'
+         'splits = list(rskf.split(np.zeros(len(y)), y))\n'
+         'repeat_macro, repeat_pcf = [], []\n'
+         'for r in range(N_REPEATS):\n'
+         '    oof = np.zeros((len(y), len(CLASSES)))\n'
+         '    for tr_idx, va_idx in splits[r*N_FOLDS:(r+1)*N_FOLDS]:\n'
+         '        m = make_cat()\n'
+         '        m.fit(Xtr.iloc[tr_idx], y[tr_idx], eval_set=(Xtr.iloc[va_idx], y[va_idx]))\n'
+         '        oof[va_idx] = _aligned_proba(m, Xtr.iloc[va_idx])\n'
+         '    s = macro_f1(y, oof.argmax(1))\n'
+         '    repeat_macro.append(s); repeat_pcf.append(per_class_f1(y, oof.argmax(1)))\n'
+         '    print(f"  repeat {r+1}: OOF macro-F1 = {s:.5f}")\n'
+         'gate_mean, gate_std = float(np.mean(repeat_macro)), float(np.std(repeat_macro))\n'
+         'pc_mean = {c: round(float(np.mean([d[c] for d in repeat_pcf])), 4)\n'
+         '           for c in ["Wake", "Light", "Deep", "REM"]}\n'
+         'print(f"\\nGATE: OOF macro-F1 = {gate_mean:.5f} +/- {gate_std:.5f}  "\n'
+         '      f"(over {N_REPEATS} repeats x {N_FOLDS} folds)")\n'
+         'print(f"=> accept a future change only if its OOF gain clearly exceeds ~{gate_std:.4f} (1 sigma).")\n'
+         'print("mean per-class F1:", pc_mean)\n'
+         'json.dump({"repeat_macro": [round(x, 5) for x in repeat_macro], "mean": round(gate_mean, 5),\n'
+         '           "std": round(gate_std, 5), "n_repeats": N_REPEATS, "n_folds": N_FOLDS},\n'
+         '          open(ART / "repeated_cv_gate.json", "w"), indent=2)\n'
+         'log_result("07_robustness", "catboost_repeatedCV", "features_v1", gate_mean, pc_mean,\n'
+         '           f"GATE mean+/-std over {N_REPEATS}x{N_FOLDS}; std={gate_std:.5f}")'),
+    md("## 2. Seed-bagged CatBoost\n"
+       "**Diagnostic first:** train K=9 seeds and look at the *single-model* per-seed OOF spread. "
+       "If the spread is tiny the averaging ceiling is tiny too — we then bag for **stability**, not "
+       "for score. The bag averages `predict_proba` across all seeds (OOF) and across folds×seeds "
+       "(test). All seeds are fixed and logged, so the result is fully reproducible."),
+    code('SEEDS = [42, 7, 13, 101, 202, 303, 404, 505, 2024]   # K=9, fixed & logged\n'
+         'K = len(SEEDS)\n'
+         'seed_oofs = {s: np.zeros((len(y), len(CLASSES))) for s in SEEDS}\n'
+         'sb_test = np.zeros((len(Xte), len(CLASSES)))\n'
+         'for tr_idx, va_idx in folds:\n'
+         '    Xt, Xv = Xtr.iloc[tr_idx], Xtr.iloc[va_idx]\n'
+         '    yt, yv = y[tr_idx], y[va_idx]\n'
+         '    for s in SEEDS:\n'
+         '        m = make_cat(seed=s)\n'
+         '        m.fit(Xt, yt, eval_set=(Xv, yv))\n'
+         '        seed_oofs[s][va_idx] = _aligned_proba(m, Xv)\n'
+         '        sb_test += _aligned_proba(m, Xte) / (len(folds) * K)\n'
+         '\n'
+         '# diagnostic: how much does the seed alone move the OOF score?\n'
+         'per_seed = {s: macro_f1(y, seed_oofs[s].argmax(1)) for s in SEEDS}\n'
+         'vals = np.array(list(per_seed.values()))\n'
+         'print("per-seed single-model OOF macro-F1:")\n'
+         'for s in SEEDS:\n'
+         '    print(f"   seed {s:>4}: {per_seed[s]:.5f}")\n'
+         'print(f"spread -> min {vals.min():.5f}  max {vals.max():.5f}  std {vals.std():.5f}")\n'
+         '\n'
+         '# the bag\n'
+         'sb_oof = sum(seed_oofs.values()) / K\n'
+         'sb_macro = macro_f1(y, sb_oof.argmax(1))\n'
+         'single = per_seed[SEED]\n'
+         'print(f"\\nsingle-seed (42): {single:.5f}")\n'
+         'print(f"seed-bag (K={K}):  {sb_macro:.5f}   ({sb_macro - single:+.5f} vs single seed)")\n'
+         'print("seed-bag per-class F1:", per_class_f1(y, sb_oof.argmax(1)))\n'
+         'np.save(ART / "seedbag_oof.npy", sb_oof)\n'
+         'np.save(ART / "seedbag_test.npy", sb_test)\n'
+         'json.dump({"seeds": SEEDS, "per_seed_macro": {str(s): round(per_seed[s], 5) for s in SEEDS},\n'
+         '           "seed_std": round(float(vals.std()), 5), "single_seed42": round(single, 5),\n'
+         '           "bag_macro": round(float(sb_macro), 5)},\n'
+         '          open(ART / "seedbag.json", "w"), indent=2)\n'
+         'log_result("07_robustness", f"catboost_seedbag_K{K}", "features_v1", sb_macro,\n'
+         '           per_class_f1(y, sb_oof.argmax(1)),\n'
+         '           f"K={K} seeds; single={single:.5f}; seed_std={vals.std():.5f}")'),
+    md("## Seed-bag submission (`sub03`)\nShipped as a stability-hardened candidate **regardless** of "
+       "OOF lift — variance reduction is private-LB insurance, not a score chase. The deterministic "
+       "single-seed CatBoost (`sub01`) remains the documented reference."),
+    code('name3 = f"sub03_CatBoostSeedBagK{K}_GBDT.csv"\n'
+         'pred3 = sb_test.argmax(1).astype(int)\n'
+         'sub3 = pd.DataFrame({"id": test_ids, "sleep_stage": pred3})\n'
+         'assert sub3.shape == (5000, 2)\n'
+         'assert sub3["id"].tolist() == list(range(9000, 14000))\n'
+         'assert sub3["sleep_stage"].isin(CLASSES).all()\n'
+         'sub3.to_csv(SUB / name3, index=False)\n'
+         'print("wrote", SUB / name3, "| OOF macro-F1:", round(sb_macro, 5))\n'
+         'print("class counts:", sub3["sleep_stage"].value_counts().sort_index().to_dict())\n'
+         '# divergence from the single-CatBoost primary (sub01)\n'
+         'single_test = np.load(ART / "catboost_tuned_test.npy")\n'
+         'diff = int((sb_test.argmax(1) != single_test.argmax(1)).sum())\n'
+         'print(f"seed-bag vs single-CatBoost test predictions differ on {diff} of 5000 rows")'),
+    md("### Takeaways\n"
+       "- The repeated-CV **gate** (mean ± std) is now the accept/reject rule for every future "
+       "experiment — no more chasing sub-noise gains on a single split.\n"
+       "- The **seed-bag** trades a few minutes of compute for lower private-LB variance with no "
+       "overfit risk; if the per-seed spread is < ~0.002 the OOF number barely moves, which is the "
+       "expected (and honest) outcome near this ceiling.\n"
+       "- Submissions to keep as the private-LB pair: `sub01` (deterministic single CatBoost, the "
+       "validated reference) and `sub03` (seed-bagged, variance-reduced)."),
+])
+
+# ===========================================================================
 # Write all notebooks
 # ===========================================================================
 NOTEBOOKS = {
@@ -700,6 +844,7 @@ NOTEBOOKS = {
     "04_models.ipynb": nb04,
     "05_tune_blend.ipynb": nb05,
     "06_submit.ipynb": nb06,
+    "07_robustness.ipynb": nb07,
 }
 
 if __name__ == "__main__":

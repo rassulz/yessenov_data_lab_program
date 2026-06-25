@@ -7,3 +7,5 @@ step,model,feature_set,oof_macro_f1,f1_Wake,f1_Light,f1_Deep,f1_REM,notes
 04_models,gb,features_v1,0.81284,0.84,0.8377,0.7598,0.8139,
 06_submit,CatBoost_GBDT,catboost_tuned,0.82898,0.8516,0.8507,0.7766,0.8369,sub01 (primary): sub01_CatBoost_GBDT.csv
 06_submit,SoftVotingEnsemble,catboost_tuned+rf+et+gb,0.81952,0.8448,0.8455,0.7652,0.8226,sub02 (diverse safety): sub02_SoftVotingEnsemble_CatBoost-RandomForest-ExtraTrees-GradientBoosting.csv
+07_robustness,catboost_repeatedCV,features_v1,0.82598,0.8513,0.8492,0.7734,0.8301,GATE mean+/-std over 5x5; std=0.00169
+07_robustness,catboost_seedbag_K9,features_v1,0.82415,0.849,0.8468,0.7726,0.8282,K=9 seeds; single=0.82898; seed_std=0.00203

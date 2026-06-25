@@ -1,0 +1,16 @@
+# Verified environment (Anaconda, Python 3.13.9). Reproducible pipeline.
+# Run with: C:/ProgramData/anaconda3/python.exe run_all.py
+numpy==2.3.5
+pandas==2.3.3
+scikit-learn==1.7.2
+scipy==1.16.3
+catboost==1.2.10
+matplotlib==3.10.6
+seaborn==0.13.2
+# notebook execution
+nbformat==5.10.4
+nbconvert==7.16.6
+ipykernel==6.31.0
+# NOTE: lightgbm / xgboost are intentionally NOT used — the solution rests on the
+# sklearn ensembles + CatBoost covered in the course (clearer to defend).
+# Optional extras only: pip install lightgbm xgboost

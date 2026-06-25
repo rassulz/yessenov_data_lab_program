@@ -1,0 +1,36 @@
+{
+  "groups": [
+    "missing",
+    "contrast"
+  ],
+  "columns": [
+    "eeg_delta_power",
+    "eeg_theta_power",
+    "eeg_alpha_power",
+    "eeg_sigma_power",
+    "eeg_beta_power",
+    "eeg_gamma_power",
+    "eeg_slow_osc_power",
+    "eeg_spectral_entropy",
+    "eeg_spindle_density",
+    "eeg_kcomplex_rate",
+    "emg_chin_tone",
+    "emg_tone_variance",
+    "eog_movement_density",
+    "eog_amplitude",
+    "heart_rate_mean",
+    "heart_rate_variability",
+    "respiration_rate",
+    "respiration_variability",
+    "spo2_mean",
+    "body_movement_index",
+    "eog_burst_index",
+    "eog_burst_index_missing",
+    "delta_minus_theta",
+    "theta_minus_alpha",
+    "slowosc_minus_delta",
+    "beta_minus_delta",
+    "dt_minus_ab",
+    "eeg_total"
+  ]
+}

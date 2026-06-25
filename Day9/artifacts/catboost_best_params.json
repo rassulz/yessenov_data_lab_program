@@ -1,0 +1,6 @@
+{
+  "depth": 6,
+  "lr": 0.03,
+  "l2": 3.0,
+  "balanced": false
+}

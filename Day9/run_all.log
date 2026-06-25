@@ -1,0 +1,45 @@
+wrote 01_eda.ipynb
+wrote 02_baseline.ipynb
+wrote 03_features.ipynb
+wrote 04_models.ipynb
+wrote 05_tune_blend.ipynb
+wrote 06_submit.ipynb
+[NbConvertApp] Converting notebook 01_eda.ipynb to notebook
+C:\Users\rasul\AppData\Local\Programs\Python\Python39\lib\site-packages\zmq\_future.py:718: RuntimeWarning: Proactor event loop does not implement add_reader family of methods required for zmq. Registering an additional selector thread for add_reader support via tornado. Use `asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())` to avoid this warning.
+  self._get_loop()
+[NbConvertApp] Writing 449263 bytes to 01_eda.ipynb
+[NbConvertApp] Converting notebook 02_baseline.ipynb to notebook
+C:\Users\rasul\AppData\Local\Programs\Python\Python39\lib\site-packages\zmq\_future.py:718: RuntimeWarning: Proactor event loop does not implement add_reader family of methods required for zmq. Registering an additional selector thread for add_reader support via tornado. Use `asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())` to avoid this warning.
+  self._get_loop()
+[NbConvertApp] Writing 16638 bytes to 02_baseline.ipynb
+[NbConvertApp] Converting notebook 03_features.ipynb to notebook
+C:\Users\rasul\AppData\Local\Programs\Python\Python39\lib\site-packages\zmq\_future.py:718: RuntimeWarning: Proactor event loop does not implement add_reader family of methods required for zmq. Registering an additional selector thread for add_reader support via tornado. Use `asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())` to avoid this warning.
+  self._get_loop()
+[NbConvertApp] Writing 16445 bytes to 03_features.ipynb
+[NbConvertApp] Converting notebook 04_models.ipynb to notebook
+C:\Users\rasul\AppData\Local\Programs\Python\Python39\lib\site-packages\zmq\_future.py:718: RuntimeWarning: Proactor event loop does not implement add_reader family of methods required for zmq. Registering an additional selector thread for add_reader support via tornado. Use `asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())` to avoid this warning.
+  self._get_loop()
+[NbConvertApp] Writing 15361 bytes to 04_models.ipynb
+[NbConvertApp] Converting notebook 05_tune_blend.ipynb to notebook
+C:\Users\rasul\AppData\Local\Programs\Python\Python39\lib\site-packages\zmq\_future.py:718: RuntimeWarning: Proactor event loop does not implement add_reader family of methods required for zmq. Registering an additional selector thread for add_reader support via tornado. Use `asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())` to avoid this warning.
+  self._get_loop()
+[NbConvertApp] Writing 18403 bytes to 05_tune_blend.ipynb
+[NbConvertApp] Converting notebook 06_submit.ipynb to notebook
+C:\Users\rasul\AppData\Local\Programs\Python\Python39\lib\site-packages\zmq\_future.py:718: RuntimeWarning: Proactor event loop does not implement add_reader family of methods required for zmq. Registering an additional selector thread for add_reader support via tornado. Use `asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())` to avoid this warning.
+  self._get_loop()
+[NbConvertApp] Writing 12800 bytes to 06_submit.ipynb
+>>> regenerating notebooks from build_notebooks.py
+
+>>> executing 01_eda.ipynb
+
+>>> executing 02_baseline.ipynb
+
+>>> executing 03_features.ipynb
+
+>>> executing 04_models.ipynb
+
+>>> executing 05_tune_blend.ipynb
+
+>>> executing 06_submit.ipynb
+
+>>> pipeline complete. See submissions/ and results_log.csv

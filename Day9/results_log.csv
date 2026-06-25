@@ -1,0 +1,9 @@
+step,model,feature_set,oof_macro_f1,f1_Wake,f1_Light,f1_Deep,f1_REM,notes
+02_baseline,catboost,raw21+missing,0.82494,0.8522,0.8473,0.7712,0.8291,primary baseline
+02_baseline,randomforest,raw21+missing,0.79899,0.8204,0.8302,0.738,0.8074,cross-check
+04_models,catboost,features_v1,0.82898,0.8516,0.8507,0.7766,0.8369,
+04_models,rf,features_v1,0.79203,0.8195,0.8229,0.7266,0.7992,
+04_models,et,features_v1,0.79462,0.8284,0.8245,0.7243,0.8012,
+04_models,gb,features_v1,0.81284,0.84,0.8377,0.7598,0.8139,
+06_submit,CatBoost_GBDT,catboost_tuned,0.82898,0.8516,0.8507,0.7766,0.8369,sub01 (primary): sub01_CatBoost_GBDT.csv
+06_submit,SoftVotingEnsemble,catboost_tuned+rf+et+gb,0.81952,0.8448,0.8455,0.7652,0.8226,sub02 (diverse safety): sub02_SoftVotingEnsemble_CatBoost-RandomForest-ExtraTrees-GradientBoosting.csv

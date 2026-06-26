@@ -29,6 +29,7 @@ ORDER = [
     "09_mlp_ensemble.ipynb",
     "10_svm_ensemble.ipynb",
     "11_multifamily_ensemble.ipynb",
+    "12_textbook_ensembles.ipynb",
 ]
 
 

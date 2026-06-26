@@ -1,0 +1,11 @@
+{
+  "n_repeats": 3,
+  "cat_mean": 0.82229,
+  "catsvm_mean": 0.83337,
+  "stack_mean": 0.83479,
+  "stack_std": 0.0008,
+  "delta_vs_cat": 0.0125,
+  "delta_vs_sub06": 0.00142,
+  "pos_vs_cat": 3,
+  "pos_vs_sub06": 3
+}

@@ -105,7 +105,7 @@ Lead with what the user just learned (better for the "best approach" defense):
 - Fix all seeds. Pipeline must rerun with one command for the "best approach" prize.
 
 ## Log (CV macro-F1 / public LB)
-Pipeline = 11 notebooks (`01_eda` → `11_multifamily_ensemble`), one-command rerun via
+Pipeline = 12 notebooks (`01_eda` → `12_textbook_ensembles`), one-command rerun via
 `C:/ProgramData/anaconda3/python.exe run_all.py`. Folds: StratifiedKFold(5, shuffle,
 seed=42), shared via `artifacts/folds.npz`. Primary metric = global OOF macro-F1.
 Full table in `results_log.csv`.
@@ -131,6 +131,9 @@ Full table in `results_log.csv`.
 | 11 multifam | GMM(k=2) per-class Bayes | features_v1 | 0.78867 | .828/.804/.740/.782 |
 | 11 multifam | Nystroem+LogReg | features_v1 | 0.82304 | .854/.845/.765/.829 |
 | 11 multifam | Cat+SVM+QDA+GMM stack (honest) | features_v1 | 0.83374 | ≈ sub06 (within noise) |
+| 12 textbook | StackingClassifier (RF+ET+HistGB, tree-only) | features_v1 | 0.81707 | the tree-only wall |
+| 12 textbook | **Géron-ch7 stack (Cat+SVM+QDA+GMM, sub08)** | features_v1 | **0.83343** | .864/.849/**.783**/.837 |
+| 12 textbook | stack **paired-CV (5×3)** | features_v1 | **0.83479 ± 0.00080** | +0.0125 vs Cat (3/3); +0.0014 vs sub06 (3/3) |
 
 Public LB (uploaded; private 70% decides — do NOT tune to these):
 | sub | OOF macro-F1 | public LB |
@@ -246,7 +249,37 @@ Multi-family / near-ceiling (step 11 — honest negative + a real diversity find
   real but too small to clear noise. For reference, the excluded MLP blend (0.83711) is still ~+0.003 above
   any honest multi-family stack — the largest single lever left, if MLP is ever reconsidered.
 
+Textbook ensembles — Géron ch.7 variant (step 12, `12_textbook_ensembles.ipynb`, an alternate solution
+built straight from the course slide deck `glava7`, "the same but better"):
+- One self-contained notebook that walks **every** ch.7 method on the real task, honestly on the shared
+  folds (macro-F1): voting (hard/soft) → bagging/pasting + OOB → random patches/subspaces → RF/Extra-Trees
+  + importances → AdaBoost/GBRT → **stacking**. Reuses the saved member OOF (cat/svm/qda/gmm2/rf/et/gb/mlp)
+  as leak-free stacking inputs; trains the textbook learners live. Each conclusion is **computed from the
+  numbers** (no hardcoded narrative).
+- Honest demonstrations that reproduce the project's whole arc: **soft voting (.753) fell *below* hard
+  (.788)** because GaussianNB's miscalibrated near-0/1 probabilities poison the average (slide-6 caveat,
+  live); the 5-learner vote sits below its best member (rf .793) — count loses to diversity-of-strength,
+  exactly why `sub02` hurt. OOB macro-F1 (.785) ≈ 5-fold bagging (.787) — the free estimate is trustworthy.
+  **Random subspaces (.800) > plain bagging (.787)** — feature subsampling is what turns bagging into a RF
+  (subspaces ≈ RF .792). AdaBoost .767 / GBRT-earlystop .816 / HistGB .818 < CatBoost .829; **tree-only
+  `StackingClassifier` = .817** = the wall (a blender can't invent signal no member has).
+- **Climax = cross-family stacking** (the "better" lever): LogReg blender, out-of-fold via
+  `cross_val_predict`, members **fixed a-priori** from the step-11 eligibility analysis (strong CatBoost+SVM
+  + most-decorrelated generatives QDA/GMM) — **not** picked by OOF-ranking the layers (that printout is
+  diagnostic only). Deployed `cat+svm+qda+gmm2` = OOF **0.83343** (Deep .783), C-stable across [0.1,3.0].
+- **Honest paired `RepeatedStratifiedKFold(5×3, seed=2026)`**, all arms refit leak-free on fresh folds:
+  STACK **0.83479 ± 0.00080** vs single CatBoost 0.82229 = **+0.01250, positive 5/5→3/3 repeats** (clears
+  the ±0.0017 floor); vs `sub06` Cat+SVM 0.83337 = **+0.00142, 3/3** but *within* the noise floor → a
+  **consistent-but-within-noise tie**, reported as such (no overclaim). MLP what-if (`+mlp` → 0.83698,
+  +0.0035) shown but **not shipped** (MLP set aside by preference) — still the one real remaining lever.
+- `sub08` shipped as a **principled diversity hedge** (textbook-faithful construction, differs from sub06
+  on 159/5000 rows), not a claimed score win. Strong "best approach"-defense artifact: clear, justified,
+  reproducible, and honest about the ceiling.
+
 Submissions (`submissions/`, format `id,sleep_stage`, 5000 rows, ids 9000–13999):
+- `sub08_Geron_Ch7_StackingEnsemble.csv` — **Géron ch.7 textbook variant** (cross-family stack:
+  CatBoost+SVM+QDA+GMM via out-of-fold LogReg blender), OOF **0.83343**, paired-CV +0.0125 vs CatBoost
+  (3/3) / +0.0014 vs sub06 (within noise), Deep .783. Diversity hedge; honest tie-at-ceiling. (public LB TBD)
 - `sub06_CatBoostPlusSVM_Ensemble.csv` — **chosen primary pick** (cross-family: CatBoost + SVM-RBF
   grid-bag, fixed 0.5/0.5), OOF **0.83269**, paired-CV +0.0116 vs CatBoost, Deep .785. (public LB TBD)
 - `sub01_CatBoost_GBDT.csv` — deterministic CatBoost **reference hedge**, OOF 0.82898, **public 0.83026**.

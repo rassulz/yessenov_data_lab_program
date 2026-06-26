@@ -1,0 +1,28 @@
+{
+  "weights": {
+    "catboost": 0.5,
+    "svm": 0.5
+  },
+  "top_configs": [
+    {
+      "C": 3,
+      "gamma": 0.02,
+      "oof": 0.83305
+    },
+    {
+      "C": 5,
+      "gamma": 0.02,
+      "oof": 0.83263
+    },
+    {
+      "C": 2,
+      "gamma": "scale",
+      "oof": 0.8314
+    }
+  ],
+  "svm_macro": 0.83331,
+  "anchor": 0.82898,
+  "ensemble_macro": 0.83269,
+  "errcorr_vs_cat": 0.759,
+  "beats_gate_seed42": true
+}

@@ -1,0 +1,24 @@
+{
+  "n_repeats": 3,
+  "n_folds": 5,
+  "cat_iters": 900,
+  "pair_configs": [
+    {
+      "C": 3,
+      "gamma": 0.02,
+      "oof": 0.83305
+    },
+    {
+      "C": 5,
+      "gamma": 0.02,
+      "oof": 0.83263
+    }
+  ],
+  "cat_mean": 0.82229,
+  "cat_std": 0.00128,
+  "ens_mean": 0.83384,
+  "ens_std": 0.00062,
+  "delta_mean": 0.01155,
+  "delta_std": 0.00187,
+  "pos_repeats": 3
+}

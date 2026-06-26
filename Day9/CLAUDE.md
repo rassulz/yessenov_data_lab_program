@@ -105,7 +105,7 @@ Lead with what the user just learned (better for the "best approach" defense):
 - Fix all seeds. Pipeline must rerun with one command for the "best approach" prize.
 
 ## Log (CV macro-F1 / public LB)
-Pipeline = 9 notebooks (`01_eda` → `09_mlp_ensemble`), one-command rerun via
+Pipeline = 10 notebooks (`01_eda` → `10_svm_ensemble`), one-command rerun via
 `C:/ProgramData/anaconda3/python.exe run_all.py`. Folds: StratifiedKFold(5, shuffle,
 seed=42), shared via `artifacts/folds.npz`. Primary metric = global OOF macro-F1.
 Full table in `results_log.csv`.
@@ -124,7 +124,9 @@ Full table in `results_log.csv`.
 | 07 robust | CatBoost seed-bag (K=9, sub03) | features_v1 | 0.82415 | .849/.847/.773/.828 |
 | 08 ensemble | CatBoost diversity ens. (sub04) | features_v1 | 0.82324 | .850/.847/.769/.827 |
 | 09 mlp | **MLP seed-bag (K=3)** | features_v1 | **0.83677** | .863/.854/**.789**/.842 |
-| 09 mlp | **CatBoost+MLP ensemble (sub05)** | features_v1 | **0.83711** | .862/.856/**.790**/.841 |
+| 09 mlp | CatBoost+MLP ensemble (sub05) | features_v1 | 0.83711 | .862/.856/.790/.841 |
+| 10 svm | **SVM-RBF bag (grid top-3)** | features_v1 | **0.83331** | .863/.850/.785/.835 |
+| 10 svm | **CatBoost+SVM ensemble (sub06)** | features_v1 | **0.83269** | .859/.850/.785/.838 |
 
 Public LB (uploaded; private 70% decides — do NOT tune to these):
 | sub | OOF macro-F1 | public LB |
@@ -195,15 +197,32 @@ Breakthrough (step 09 — the ~0.83 wall was a SINGLE-FAMILY limit, not a data l
 - Confirmed dead ends (do not retry): more CatBoost FE, threshold/calibration, EOG regime split,
   Deep-class specialist, and any tree-only ensemble. Remaining ceiling = Deep↔Light/REM overlap in
   feature space (needs new signal, not feature recombination).
-- **Final private-LB pair recommendation (updated):** `sub05` (CatBoost+MLP cross-family ensemble,
-  new best OOF 0.83711, lifts Deep) as **primary**, + `sub01` (single deterministic CatBoost,
-  validated reference, public 0.83026) as the hedge. `sub02`/`sub04` demoted (tree-only, strictly
-  worse). Upload `sub05` to confirm the public LB tracks the +0.008 OOF gain before finalizing.
+Chosen direction (step 10 — SVM-RBF, MLP set aside by preference):
+- Per the user's choice we do **not** ship the MLP; the non-tree partner is an **SVM-RBF**
+  (`09_mlp_ensemble` stays on disk as an explored-but-unselected result). Same cross-family recipe.
+- **Grid-CV over (C, gamma)** on the shared folds (predict-only scoring): best single SVM-RBF is
+  `C=3, gamma=0.02` = **0.83305**; top-3 = (3,0.02)/(5,0.02)/(2,scale). **Bagged top-3** (calibrated)
+  OOF **0.83331**, Deep .785. Error-correlation with CatBoost **0.759** (vs MLP's 0.68 → less diverse,
+  so a smaller blend payoff — as predicted).
+- **Cross-family ensemble `0.5·CatBoost + 0.5·SVM` (sub06)** = OOF **0.83269** (+0.0037 vs CatBoost),
+  weights fixed a-priori. Honest paired `RepeatedStratifiedKFold(5×3, seed=2026)`: ensemble
+  **0.83384 ± 0.00062** vs single CatBoost(900 fixed iters) 0.82229 ± 0.00128, paired delta
+  **+0.01155**, positive in **3/3** (vs the fair 0.826 gate, honest gain ≈ +0.008).
+- Honest caveat: the SVM bag **alone** (0.83331) ≈ the Cat+SVM ensemble (0.83269) on seed-42 — SVM is
+  stronger than CatBoost and they correlate (0.759), so the blend wins on **variance** (paired std
+  0.0006) and two-family risk-hedging, not on a higher mean. (For reference, the unshipped MLP blend
+  was higher: 0.83711.)
+- **Final private-LB pair recommendation:** `sub06` (CatBoost+SVM cross-family, the chosen pick) as
+  **primary**, + `sub01` (single deterministic CatBoost, validated reference, public 0.83026) as the
+  hedge. `sub02`/`sub04` demoted (tree-only). Upload `sub06` to confirm the public LB tracks the OOF
+  gain before finalizing.
 
 Submissions (`submissions/`, format `id,sleep_stage`, 5000 rows, ids 9000–13999):
-- `sub05_CatBoostPlusMLP_Ensemble.csv` — **new primary pick** (cross-family: CatBoost + MLP,
-  fixed 0.5/0.5), OOF **0.83711**, paired-CV +0.010 vs CatBoost, lifts Deep to .790. (public LB TBD)
+- `sub06_CatBoostPlusSVM_Ensemble.csv` — **chosen primary pick** (cross-family: CatBoost + SVM-RBF
+  grid-bag, fixed 0.5/0.5), OOF **0.83269**, paired-CV +0.0116 vs CatBoost, Deep .785. (public LB TBD)
 - `sub01_CatBoost_GBDT.csv` — deterministic CatBoost **reference hedge**, OOF 0.82898, **public 0.83026**.
+- `sub05_CatBoostPlusMLP_Ensemble.csv` — explored, **not selected** (MLP set aside by preference);
+  higher OOF 0.83711 / Deep .790, kept on disk for reference.
 - `sub03_CatBoostSeedBagK9_GBDT.csv` — **variance-reduced safety** (K=9 seed-bag), OOF 0.82415.
   Recommended private-LB hedge in place of sub02.
 - `sub02_SoftVotingEnsemble_CatBoost-RandomForest-ExtraTrees-GradientBoosting.csv`

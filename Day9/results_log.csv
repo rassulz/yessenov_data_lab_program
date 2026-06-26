@@ -13,3 +13,6 @@ step,model,feature_set,oof_macro_f1,f1_Wake,f1_Light,f1_Deep,f1_REM,notes
 09_mlp_ensemble,mlp_seedbag,features_v1,0.83677,0.8626,0.8536,0.7889,0.8419,"MLP(256,128) a=1e-3 K=3; errcorr_vs_cat=0.680"
 09_mlp_ensemble,catboost_plus_mlp,features_v1,0.83711,0.8622,0.8556,0.7895,0.8411,fixed 0.5/0.5 Cat+MLP; vs anchor 0.82898 (+0.00813); errcorr=0.680
 09_mlp_ensemble,catboost_plus_mlp_pairedCV,features_v1,0.83669,0.8622,0.8556,0.7895,0.8411,paired 5x5: ens 0.83669 vs cat 0.82255 (delta +0.01414)
+10_svm_ensemble,svm_rbf_bag,features_v1,0.83331,0.8627,0.8504,0.785,0.8351,"top-3 SVM-RBF bag [(3, 0.02), (5, 0.02), (2, 'scale')]; errcorr_vs_cat=0.759"
+10_svm_ensemble,catboost_plus_svm,features_v1,0.83269,0.859,0.8496,0.7845,0.8377,fixed 0.5/0.5 Cat+SVM; vs anchor 0.82898 (+0.00371); errcorr=0.759
+10_svm_ensemble,catboost_plus_svm_pairedCV,features_v1,0.83384,0.859,0.8496,0.7845,0.8377,paired 3x5: ens 0.83384 vs cat 0.82229 (delta +0.01155)

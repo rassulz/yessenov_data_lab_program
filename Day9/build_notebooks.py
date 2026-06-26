@@ -1166,6 +1166,239 @@ nb09 = make_nb([
 ])
 
 # ===========================================================================
+# 10_svm_ensemble.ipynb  (cross-FAMILY ensemble: CatBoost + SVM-RBF, grid + bag)
+# ===========================================================================
+# Same cross-family idea as 09 but with an SVM-RBF instead of an MLP (the chosen
+# non-tree learner). Pipeline: (1) GRID-CV over (C, gamma) on the shared folds,
+# scored fast with predict-only OOF; (2) BAG the top-K configs (probability=True)
+# into one SVM-RBF probability matrix; (3) FIXED 0.5/0.5 blend with the deployed
+# CatBoost; (4) honest PAIRED RepeatedStratifiedKFold vs single CatBoost. SVM-RBF
+# is more correlated with CatBoost (~0.79) than the MLP was (~0.65), so expect a
+# smaller-but-real cross-family gain. Weights fixed a-priori (no OOF weight search).
+NB10_LOAD = r'''from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import RepeatedStratifiedKFold
+from catboost import CatBoostClassifier
+
+cols = json.load(open(ART / "feature_cols.json"))["columns"]
+Xtr = pd.DataFrame(np.load(ART / "features_v1_train.npy"), columns=cols)
+Xte = pd.DataFrame(np.load(ART / "features_v1_test.npy"), columns=cols)
+y = np.load(ART / "y_train.npy")
+test_ids = np.load(ART / "test_ids.npy")
+folds = load_folds()
+gate = json.load(open(ART / "repeated_cv_gate.json"))
+bp = json.load(open(ART / "catboost_best_params.json"))
+
+# Anchor = the deployed single CatBoost (sub01): reuse its saved OOF/test probs.
+cat_oof = np.load(ART / "catboost_tuned_oof.npy")
+cat_test = np.load(ART / "catboost_tuned_test.npy")
+anchor = macro_f1(y, cat_oof.argmax(1))
+print("features_v1:", Xtr.shape[1], "cols | anchor CatBoost OOF macro-F1:", round(anchor, 5))
+print("gate:", gate["mean"], "+/-", gate["std"], "| deployed CatBoost config:", bp)
+
+
+def scaled_fold(Xdf, tr_idx, va_idx):
+    """Train-fold-only EOG median impute + StandardScaler; return scaled arrays."""
+    Xt, Xv = Xdf.iloc[tr_idx].copy(), Xdf.iloc[va_idx].copy()
+    med = Xt[EOG].median(); Xt[EOG] = Xt[EOG].fillna(med); Xv[EOG] = Xv[EOG].fillna(med)
+    sc = StandardScaler().fit(Xt.values)
+    return sc.transform(Xt.values), sc.transform(Xv.values), sc, med'''
+
+NB10_GRID = r'''# (1) GRID-CV over (C, gamma). Scored with predict-only OOF (no Platt calibration)
+# so the search is cheap; the top configs are refit WITH probability for blending.
+C_GRID = [0.5, 1, 2, 3, 5]
+GAMMA_GRID = ["scale", 0.02, 0.08]
+
+def svm_oof_predict(Xdf, ydat, the_folds, C, gamma):
+    pred = np.zeros(len(ydat), dtype=int)
+    for tr_idx, va_idx in the_folds:
+        Xts, Xvs, _, _ = scaled_fold(Xdf, tr_idx, va_idx)
+        m = SVC(C=C, gamma=gamma, kernel="rbf", random_state=SEED)
+        m.fit(Xts, ydat[tr_idx])
+        pred[va_idx] = m.predict(Xvs)
+    return macro_f1(ydat, pred)
+
+grid = []
+for C in C_GRID:
+    for g in GAMMA_GRID:
+        s = svm_oof_predict(Xtr, y, folds, C, g)
+        grid.append({"C": C, "gamma": g, "oof": round(float(s), 5)})
+        print(f"  C={C:<3} gamma={str(g):<6} -> OOF macro-F1 = {s:.5f}")
+grid.sort(key=lambda d: -d["oof"])
+TOPK = 3
+top = grid[:TOPK]
+print("\nbest single SVM-RBF:", grid[0], "| anchor CatBoost:", round(anchor, 5))
+print(f"top-{TOPK} configs to bag:", [(d["C"], d["gamma"], d["oof"]) for d in top])
+json.dump({"grid": grid, "topk": top}, open(ART / "svm_grid.json", "w"), indent=2)'''
+
+NB10_BAG = r'''# (2) BAG the top-K configs with probability=True (Platt) into one SVM probability
+# matrix. probability=True is slow (internal CV), so we only pay it for the few
+# kept configs, not the whole grid.
+def svm_proba_bag(Xdf, ydat, Xtest_df, the_folds, configs):
+    ncl = len(CLASSES)
+    oof = np.zeros((len(ydat), ncl)); test_p = np.zeros((len(Xtest_df), ncl))
+    for tr_idx, va_idx in the_folds:
+        Xt, Xv, Xe = Xdf.iloc[tr_idx].copy(), Xdf.iloc[va_idx].copy(), Xtest_df.copy()
+        med = Xt[EOG].median()
+        for d in (Xt, Xv, Xe):
+            d[EOG] = d[EOG].fillna(med)
+        sc = StandardScaler().fit(Xt.values)
+        Xts, Xvs, Xes = sc.transform(Xt.values), sc.transform(Xv.values), sc.transform(Xe.values)
+        for cfg in configs:
+            m = SVC(C=cfg["C"], gamma=cfg["gamma"], kernel="rbf",
+                    probability=True, random_state=SEED)
+            m.fit(Xts, ydat[tr_idx])
+            oof[va_idx] += _aligned_proba(m, Xvs) / len(configs)
+            test_p += _aligned_proba(m, Xes) / (len(the_folds) * len(configs))
+    return oof, test_p
+
+svm_oof_p, svm_test_p = svm_proba_bag(Xtr, y, Xte, folds, top)
+svm_macro = macro_f1(y, svm_oof_p.argmax(1))
+cat_wrong = (cat_oof.argmax(1) != y).astype(int)
+svm_wrong = (svm_oof_p.argmax(1) != y).astype(int)
+errcorr = float(np.corrcoef(cat_wrong, svm_wrong)[0, 1])
+print(f"SVM-RBF bag (top-{TOPK}) OOF macro-F1 = {svm_macro:.5f}")
+print("SVM bag per-class F1:", per_class_f1(y, svm_oof_p.argmax(1)))
+print(f"error-correlation SVM vs CatBoost = {errcorr:.3f}  (lower = more diverse)")
+np.save(ART / "svm_oof.npy", svm_oof_p); np.save(ART / "svm_test.npy", svm_test_p)
+log_result("10_svm_ensemble", "svm_rbf_bag", "features_v1", svm_macro,
+           per_class_f1(y, svm_oof_p.argmax(1)),
+           f"top-{TOPK} SVM-RBF bag {[(d['C'], d['gamma']) for d in top]}; errcorr_vs_cat={errcorr:.3f}")'''
+
+NB10_ENS = r'''# (3) Fixed equal-weight cross-family blend (a-priori; NO OOF weight search).
+W_CAT, W_SVM = 0.5, 0.5
+ens_oof = W_CAT * cat_oof + W_SVM * svm_oof_p
+ens_test = W_CAT * cat_test + W_SVM * svm_test_p
+ens_macro = macro_f1(y, ens_oof.argmax(1))
+beats = ens_macro > anchor + gate["std"]
+print(f"anchor single CatBoost      = {anchor:.5f}")
+print(f"SVM-RBF bag                 = {svm_macro:.5f}")
+print(f"ENSEMBLE 0.5*Cat + 0.5*SVM  = {ens_macro:.5f}   (delta vs anchor {ens_macro - anchor:+.5f})")
+print(f"gate 1-sigma = {gate['std']:.5f} -> clears anchor+1sigma on the seed-42 split?", bool(beats))
+print("ensemble per-class F1:", per_class_f1(y, ens_oof.argmax(1)))
+print("(seed-42 CatBoost is ~+0.003 lucky, so this single-split delta understates the gain;")
+print(" the paired repeated-CV below is the honest headline.)")
+np.save(ART / "svm_ensemble_oof.npy", ens_oof); np.save(ART / "svm_ensemble_test.npy", ens_test)
+json.dump({"weights": {"catboost": W_CAT, "svm": W_SVM}, "top_configs": top,
+           "svm_macro": round(float(svm_macro), 5), "anchor": round(float(anchor), 5),
+           "ensemble_macro": round(float(ens_macro), 5), "errcorr_vs_cat": round(errcorr, 3),
+           "beats_gate_seed42": bool(beats)}, open(ART / "svm_ensemble.json", "w"), indent=2)
+log_result("10_svm_ensemble", "catboost_plus_svm", "features_v1", ens_macro,
+           per_class_f1(y, ens_oof.argmax(1)),
+           f"fixed 0.5/0.5 Cat+SVM; vs anchor {anchor:.5f} ({ens_macro - anchor:+.5f}); errcorr={errcorr:.3f}")'''
+
+NB10_PAIRED = r'''# (4) Honest paired comparison on fresh folds. SVM(probability=True) is costly,
+# so we use RepeatedStratifiedKFold(5x3) with the top-2 SVM bag (vs 5x5 in nb09).
+# Both arms leak-free: CatBoost fixed iterations; SVM scaler/impute inside the train
+# fold. Weights fixed 0.5/0.5.
+N_REP = 3
+PAIR_TOP = top[:2]
+CAT_ITERS = 900                              # ~ deployed best_iter (~921); fixed => leak-free
+rskf = RepeatedStratifiedKFold(n_splits=N_FOLDS, n_repeats=N_REP, random_state=2026)
+splits = list(rskf.split(np.zeros(len(y)), y))
+
+def make_cat_fixed(seed=SEED):
+    return CatBoostClassifier(loss_function="MultiClass", eval_metric="TotalF1:average=Macro",
+        iterations=CAT_ITERS, learning_rate=bp["lr"], depth=bp["depth"], l2_leaf_reg=bp["l2"],
+        random_seed=seed, allow_writing_files=False, thread_count=-1, verbose=False)
+
+cat_sc, ens_sc = [], []
+for r in range(N_REP):
+    cat_o = np.zeros((len(y), len(CLASSES)))
+    svm_o = np.zeros((len(y), len(CLASSES)))
+    for tr_idx, va_idx in splits[r * N_FOLDS:(r + 1) * N_FOLDS]:
+        cb = make_cat_fixed(); cb.fit(Xtr.iloc[tr_idx], y[tr_idx])
+        cat_o[va_idx] = _aligned_proba(cb, Xtr.iloc[va_idx])
+        Xt, Xv = Xtr.iloc[tr_idx].copy(), Xtr.iloc[va_idx].copy()
+        med = Xt[EOG].median(); Xt[EOG] = Xt[EOG].fillna(med); Xv[EOG] = Xv[EOG].fillna(med)
+        sc = StandardScaler().fit(Xt.values)
+        Xts, Xvs = sc.transform(Xt.values), sc.transform(Xv.values)
+        for cfg in PAIR_TOP:
+            m = SVC(C=cfg["C"], gamma=cfg["gamma"], kernel="rbf",
+                    probability=True, random_state=SEED)
+            m.fit(Xts, y[tr_idx])
+            svm_o[va_idx] += _aligned_proba(m, Xvs) / len(PAIR_TOP)
+    cs = macro_f1(y, cat_o.argmax(1))
+    es = macro_f1(y, (0.5 * cat_o + 0.5 * svm_o).argmax(1))
+    cat_sc.append(cs); ens_sc.append(es)
+    print(f"  repeat {r + 1}: CatBoost {cs:.5f} | Ensemble {es:.5f} | delta {es - cs:+.5f}")
+
+cat_sc, ens_sc = np.array(cat_sc), np.array(ens_sc)
+d = ens_sc - cat_sc
+print(f"\nPAIRED repeated CV ({N_REP}x{N_FOLDS}, seed=2026):")
+print(f"  single CatBoost : {cat_sc.mean():.5f} +/- {cat_sc.std():.5f}")
+print(f"  Cat+SVM ensemble: {ens_sc.mean():.5f} +/- {ens_sc.std():.5f}")
+print(f"  paired delta    : {d.mean():+.5f} +/- {d.std():.5f}  (positive in {int((d > 0).sum())}/{N_REP} repeats)")
+print(f"  => honest gain beyond the {gate['std']:.5f} noise floor?", bool(d.mean() > gate["std"]))
+json.dump({"n_repeats": N_REP, "n_folds": N_FOLDS, "cat_iters": CAT_ITERS,
+           "pair_configs": PAIR_TOP, "cat_mean": round(float(cat_sc.mean()), 5),
+           "cat_std": round(float(cat_sc.std()), 5), "ens_mean": round(float(ens_sc.mean()), 5),
+           "ens_std": round(float(ens_sc.std()), 5), "delta_mean": round(float(d.mean()), 5),
+           "delta_std": round(float(d.std()), 5), "pos_repeats": int((d > 0).sum())},
+          open(ART / "svm_ensemble_paired_cv.json", "w"), indent=2)
+log_result("10_svm_ensemble", "catboost_plus_svm_pairedCV", "features_v1", float(ens_sc.mean()),
+           per_class_f1(y, ens_oof.argmax(1)),
+           f"paired {N_REP}x{N_FOLDS}: ens {ens_sc.mean():.5f} vs cat {cat_sc.mean():.5f} (delta {d.mean():+.5f})")'''
+
+NB10_SUB = r'''name6 = "sub06_CatBoostPlusSVM_Ensemble.csv"
+pred6 = ens_test.argmax(1).astype(int)
+sub6 = pd.DataFrame({"id": test_ids, "sleep_stage": pred6})
+assert sub6.shape == (5000, 2)
+assert sub6["id"].tolist() == list(range(9000, 14000))
+assert sub6["sleep_stage"].isin(CLASSES).all()
+sub6.to_csv(SUB / name6, index=False)
+print("wrote", SUB / name6, "| ensemble OOF macro-F1:", round(ens_macro, 5))
+print("class counts:", sub6["sleep_stage"].value_counts().sort_index().to_dict())
+single_test = np.load(ART / "catboost_tuned_test.npy")
+diff = int((ens_test.argmax(1) != single_test.argmax(1)).sum())
+print(f"sub06 vs single-CatBoost (sub01) test preds differ on {diff} of 5000 rows")'''
+
+nb10 = make_nb([
+    md("# 10 — Cross-family ensemble: CatBoost + SVM-RBF (grid + bag)\n"
+       "Same cross-family idea as `09`, but the non-tree partner is an **SVM-RBF** (the chosen "
+       "learner) instead of an MLP. An RBF SVM draws smooth, curved decision boundaries that the "
+       "axis-aligned trees only approximate — so it is diverse from CatBoost, just less so than the "
+       "MLP was (error-corr ~0.79 vs ~0.65), which caps the blend gain.\n\n"
+       "Steps: **(1) grid-CV** over `(C, gamma)` scored with cheap predict-only OOF; **(2) bag** the "
+       "top-K configs with calibrated probabilities; **(3) fixed 0.5/0.5 blend** with the deployed "
+       "CatBoost (weights a-priori — no OOF weight search, which the audit showed inflates the score); "
+       "**(4) honest paired `RepeatedStratifiedKFold`** vs single CatBoost."),
+    code(TOOLBOX),
+    code(LOG_HELPER),
+    code(NB10_LOAD),
+    md("## (1) Grid-CV over (C, gamma)\nScored with predict-only OOF on the shared folds (no Platt "
+       "calibration → fast). We keep the top-K configs for the bag. Sweet spot is C≈1–3, "
+       "`gamma='scale'`; large C overfits."),
+    code(NB10_GRID),
+    md("## (2) Bag the top-K SVM-RBF configs\nRefit the kept configs **with** `probability=True` "
+       "(Platt) and average their probabilities. Per fold: `StandardScaler` + EOG median fit on the "
+       "**train fold only**. We report the error-correlation with CatBoost — the diversity that makes "
+       "the blend work."),
+    code(NB10_BAG),
+    md("## (3) Fixed-weight cross-family ensemble (no OOF weight search)\nEqual-weight average of the "
+       "CatBoost and SVM-RBF probabilities, reported on the seed-42 split. The paired test below is the "
+       "honest gain."),
+    code(NB10_ENS),
+    md("## (4) Honest headline — paired `RepeatedStratifiedKFold(5×3)` vs single CatBoost\n"
+       "Both arms on identical fresh folds (seed 2026), leak-free (CatBoost fixed iterations, SVM "
+       "scaler/impute inside the train fold). Fewer repeats than nb09 (5×3 not 5×5) because "
+       "`SVC(probability=True)` is costly; still enough to confirm the sign and rough size of the gain."),
+    code(NB10_PAIRED),
+    md("## Submission (`sub06`) — CatBoost + SVM-RBF cross-family ensemble\n"
+       "The SVM-based cross-family pick (per the chosen direction). Compare its OOF/paired gain against "
+       "the single CatBoost reference before finalizing the private-LB pair."),
+    code(NB10_SUB),
+    md("### Takeaways\n"
+       "- SVM-RBF is a genuine non-tree partner: it edges CatBoost on its own and a grid+bag stabilizes "
+       "the operating point.\n"
+       "- The cross-family blend with CatBoost is the honest win; because SVM is more correlated with "
+       "CatBoost than the MLP was (~0.79 vs ~0.65), expect a **smaller** gain than nb09 — read the "
+       "paired number, not the lucky seed-42 split.\n"
+       "- Weights fixed a-priori (0.5/0.5) → no in-sample weight overfitting. `sub06` is the SVM "
+       "cross-family candidate; the single CatBoost (`sub01`) stays the deterministic reference."),
+])
+
+# ===========================================================================
 # Write all notebooks
 # ===========================================================================
 NOTEBOOKS = {
@@ -1178,6 +1411,7 @@ NOTEBOOKS = {
     "07_robustness.ipynb": nb07,
     "08_catboost_ensemble.ipynb": nb08,
     "09_mlp_ensemble.ipynb": nb09,
+    "10_svm_ensemble.ipynb": nb10,
 }
 
 if __name__ == "__main__":

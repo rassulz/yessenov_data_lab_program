@@ -27,6 +27,7 @@ ORDER = [
     "07_robustness.ipynb",
     "08_catboost_ensemble.ipynb",
     "09_mlp_ensemble.ipynb",
+    "10_svm_ensemble.ipynb",
 ]
 
 

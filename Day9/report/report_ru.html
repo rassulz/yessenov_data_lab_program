@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Оценка, что упёрлась в стену</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 16mm 16mm; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font-family: Georgia, "DejaVu Serif", serif;
+    color: #20242c; font-size: 11pt; line-height: 1.55; margin: 0;
+  }
+  h1, h2, h3, .kicker, .stat, .cover-title, .tag, th, .callout-h {
+    font-family: "Segoe UI", "Helvetica Neue", Arial, "DejaVu Sans", sans-serif;
+  }
+  .ink { color: #1b2a4a; }
+  .accent { color: #1e8449; }
+  .warn { color: #c0392b; }
+
+  .cover { height: 252mm; display: flex; flex-direction: column; justify-content: center; }
+  .kicker { letter-spacing: .14em; text-transform: uppercase; font-size: 10pt; color: #2e86c1; font-weight: 600; }
+  .cover-title { font-size: 38pt; font-weight: 800; color: #1b2a4a; line-height: 1.05; margin: 10px 0 6px; }
+  .cover-sub { font-size: 15pt; color: #4a5568; margin-bottom: 26px; font-style: italic; }
+  .statband { background: #1b2a4a; color: #fff; border-radius: 10px; padding: 22px 26px; display: flex; align-items: center; gap: 18px; }
+  .statband .from { font-size: 22pt; opacity: .7; }
+  .statband .arrow { font-size: 22pt; opacity: .55; }
+  .statband .to { font-size: 38pt; font-weight: 800; color: #ffd24d; }
+  .statband .lbl { font-size: 10pt; opacity: .8; display:block; font-family:"Segoe UI",sans-serif; }
+  .tag { margin-top: 26px; font-size: 13.5pt; color: #1b2a4a; border-left: 4px solid #1e8449; padding-left: 14px; font-style: italic; }
+  .byline { margin-top: 30px; font-size: 11pt; color: #4a5568; font-family:"Segoe UI",sans-serif; }
+
+  .page-break { page-break-before: always; }
+  h2 { font-size: 19pt; color: #1b2a4a; margin: 26px 0 4px; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; }
+  h2 .act { color: #2e86c1; font-size: 11pt; letter-spacing:.10em; text-transform:uppercase; display:block; margin-bottom:2px;}
+  h3 { font-size: 13pt; color: #2c3e50; margin: 16px 0 2px; }
+  p { margin: 8px 0; }
+  .lead { font-size: 12pt; }
+  .dropcap::first-letter { font-size: 300%; font-weight: 700; color: #1e8449; float: left; line-height: .8; padding: 6px 8px 0 0; font-family:"Segoe UI",sans-serif; }
+
+  .callout { border-radius: 8px; padding: 12px 16px; margin: 14px 0; font-size: 10.5pt; }
+  .callout-h { font-weight: 700; font-size: 10pt; letter-spacing:.03em; text-transform: uppercase; margin-bottom: 3px; }
+  .c-insight { background: #eafaf1; border-left: 5px solid #1e8449; }
+  .c-insight .callout-h { color: #1e8449; }
+  .c-trap { background: #fdecea; border-left: 5px solid #c0392b; }
+  .c-trap .callout-h { color: #c0392b; }
+  .c-honest { background: #eef4fb; border-left: 5px solid #2e86c1; }
+  .c-honest .callout-h { color: #2e86c1; }
+
+  figure { margin: 16px 0 6px; text-align: center; page-break-inside: avoid; }
+  figure img { width: 100%; border: 1px solid #e2e8f0; border-radius: 6px; }
+  figcaption { font-size: 9.5pt; color: #667085; margin-top: 5px; font-family:"Segoe UI",sans-serif; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 9.6pt; font-family:"Segoe UI",sans-serif; page-break-inside: avoid; }
+  th { background: #1b2a4a; color: #fff; text-align: left; padding: 6px 8px; font-weight: 600; }
+  td { padding: 5px 8px; border-bottom: 1px solid #e6e9ef; }
+  tr:nth-child(even) td { background: #f6f8fb; }
+  .win td { background: #eafaf1 !important; font-weight: 700; }
+  .muted { color: #98a2b3; }
+  .mono { font-family: "DejaVu Sans Mono", Consolas, monospace; font-size: 9pt; }
+  .small { font-size: 9.5pt; color: #475467; }
+  ul { margin: 6px 0 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; }
+  .foot { margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 8px; font-size: 9pt; color: #98a2b3; font-family:"Segoe UI",sans-serif; }
+</style>
+</head>
+<body>
+
+<!-- ===================== ОБЛОЖКА ===================== -->
+<section class="cover">
+  <div class="kicker">Kaggle · Классификация стадий сна · метрика: macro-F1</div>
+  <div class="cover-title">Оценка,<br>что упёрлась в стену</div>
+  <div class="cover-sub">Путь героя: как одна модель сражалась за то, чтобы пробить 0.83 &mdash; и единственная идея, которая это сделала.</div>
+  <div class="statband">
+    <div><span class="lbl">база (локальная CV)</span><span class="from">0.825</span></div>
+    <div class="arrow">&rarr;</div>
+    <div><span class="lbl">куда пришёл (public leaderboard)</span><span class="to">0.84157</span></div>
+  </div>
+  <div class="tag">&laquo;Я перестал делать модель <em>сильнее</em> &mdash; и начал учить её <em>спорить с самой собой</em>.&raquo;</div>
+  <div class="byline"><b>Автор:</b> Расул Зейнулла &nbsp;·&nbsp; Воспроизводимый пайплайн из 11 ноутбуков, одна команда: <span class="mono">run_all.py</span></div>
+</section>
+
+<!-- ===================== ПРОЛОГ ===================== -->
+<section class="page-break">
+  <h2><span class="act">Пролог</span>Задача на одном дыхании</h2>
+  <p class="lead">По датчикам ночного сна &mdash; мозговые волны (EEG), мышечный тонус (EMG), движения глаз (EOG), пульс, дыхание, кислород в крови &mdash; нужно предсказать стадию сна для каждой 30-секундной эпохи: <b>Бодрствование, Лёгкий сон, Глубокий, REM.</b> Четыре класса. 9&nbsp;000 размеченных эпох для обучения, 5&nbsp;000 &mdash; предсказать. Метрика &mdash; <b>macro-F1</b>: все классы равны, поэтому судьбу решает <em>самый слабый</em> класс.</p>
+  <div class="callout c-honest">
+    <div class="callout-h">Правило, которое определило всё</div>
+    Macro-F1 награждает не общую точность, а подъём <em>худшего</em> класса. У меня это всегда был <b>Глубокий сон (N3)</b>, вечно путавшийся с Лёгким и REM. Каждое решение ниже проверялось честной кросс-валидацией out-of-fold (OOF), а не публичным лидербордом &mdash; ведь итоговое место решает скрытые 70% теста.
+  </div>
+  <p class="small">Этот документ намеренно написан как история. Метод важен &mdash; но не менее важно <em>почему</em> был сделан каждый поворот. Дальше &mdash; реальная последовательность решений и реальные числа за каждым из них.</p>
+</section>
+
+<!-- ===================== АКТ I ===================== -->
+<section class="page-break">
+  <h2><span class="act">Акт I — Обычный мир</span>Жил-был базовый CatBoost</h2>
+  <p class="dropcap">Жизнь была хороша. Я собрал чистый, честный пайплайн: разведал данные, зафиксировал пять складок кросс-валидации, чтобы все будущие эксперименты были сравнимы, сконструировал несколько физиологически осмысленных признаков (контрасты между EEG-диапазонами, флаг наполовину пропущенного EOG-канала) и обучил <b>CatBoost</b> &mdash; градиентный бустинг на деревьях. Он нативно справлялся с 50% пропусков и оптимизировал macro-F1 напрямую.</p>
+  <p>И всё работало прекрасно. <b>OOF macro-F1 = 0.82898.</b> На публичном лидерборде &mdash; <b>0.83026</b>. Я настраивал глубину, скорость обучения, регуляризацию &mdash; победили значения по умолчанию. У меня была сильная, детерминированная, воспроизводимая модель. И я, честно говоря, был доволен.</p>
+  <table>
+    <tr><th>Ранняя модель</th><th>OOF macro-F1</th><th>Deep (худший класс)</th></tr>
+    <tr><td>CatBoost базовый (21 признак + флаг пропуска)</td><td>0.82494</td><td>0.771</td></tr>
+    <tr class="win"><td>CatBoost настроенный + инженерные признаки (sub01)</td><td>0.82898</td><td>0.777</td></tr>
+  </table>
+</section>
+
+<!-- ===================== АКТ II ===================== -->
+<section>
+  <h2><span class="act">Акт II — Зов</span>Стена</h2>
+  <p>А потом я попробовал подняться выше. И не смог.</p>
+  <p>Я добавлял признаки &mdash; отношения диапазонов, относительные мощности, вегетативные комбинации. Каждая группа делала <em>хуже</em>. Я искал пороги решения, чтобы спасти Глубокий класс &mdash; оптимум был &laquo;не менять ничего&raquo;. Я усреднял девять случайных сидов &mdash; чистое снижение дисперсии, без прироста. Чтобы понять, реален ли вообще любой выигрыш, я построил &laquo;ворота&raquo; из повторной CV: <b>0.82598 &plusmn; 0.00169</b>. Эти крошечные &plusmn;0.0017 стали моим законом: любое улучшение меньше этого &mdash; шум, а не прогресс.</p>
+  <div class="callout c-trap">
+    <div class="callout-h">Стена</div>
+    Что бы я ни делал со своим CatBoost, я не мог перейти <b>~0.829</b>. И я начал верить в утешительную ложь, которую говорит себе каждый застрявший участник: <em>&laquo;это просто потолок данных&raquo;.</em>
+  </div>
+</section>
+
+<!-- ===================== АКТ III ===================== -->
+<section>
+  <h2><span class="act">Акт III — Отказ</span>Старался сильнее &mdash; откатывался назад</h2>
+  <p>И я сделал то, что казалось естественным: ансамбли. Ведь много моделей вместе побьют одну? Я объединил CatBoost с RandomForest, ExtraTrees, GradientBoosting в мягком голосовании. Собрал ансамбль из шести <em>разных CatBoost</em>. Стекал их.</p>
+  <p>Всё стало <b>хуже.</b> Мягкое голосование упало до 0.81952. Ансамбль из разных CatBoost опустился до 0.82324 &mdash; ниже одиночной модели. Я работал усерднее и сползал назад. Это, честно, выбивало почву из-под ног.</p>
+  <table>
+    <tr><th>Попытка &laquo;стараться сильнее&raquo;</th><th>OOF macro-F1</th><th>против одиночного CatBoost</th></tr>
+    <tr><td>Мягкое голосование: CatBoost + RF + ExtraTrees + GradBoost (sub02)</td><td>0.81952</td><td class="warn">&minus;0.009</td></tr>
+    <tr><td>Шесть разных CatBoost, равные веса (sub04)</td><td>0.82324</td><td class="warn">&minus;0.006</td></tr>
+    <tr><td>Сид-бэг из 9 CatBoost (sub03)</td><td>0.82415</td><td class="warn">&minus;0.005</td></tr>
+  </table>
+  <p class="small">Каждый ансамбль, который я мог собрать, состоял из <em>деревьев</em>. Я ещё не видел, что именно в этом и была вся проблема.</p>
+</section>
+
+<!-- ===================== АКТ IV ===================== -->
+<section class="page-break">
+  <h2><span class="act">Акт IV — Наставник — это вопрос</span>Вопрос, который изменил всё</h2>
+  <p class="lead">Вместо &laquo;как сделать модель сильнее?&raquo; я наконец спросил: <b>&laquo;что я делаю <em>не так</em>?&raquo;</b></p>
+  <p>Я разобрался системно &mdash; и ответ прятался на виду. <b>Все модели, что я пробовал, были деревьями.</b> CatBoost, RandomForest, ExtraTrees, GradientBoosting &mdash; все они режут мир на одни и те же прямоугольники, выровненные по осям. У них один способ ошибаться. Поэтому, усредняя их, я получал <em>одни и те же ошибки</em> на <em>одних и тех же эпохах</em>. Ансамбль из клонов &mdash; это всё ещё одна модель.</p>
+  <div class="callout c-insight">
+    <div class="callout-h">Озарение</div>
+    Стена 0.83 никогда не была пределом <b>данных</b>. Это был предел одного <b>семейства моделей</b>. Чтобы пробить её, мне нужно было не более сильное дерево &mdash; а союзник, который мыслит совершенно иной формой и, значит, <em>ошибается в других местах</em>.
+  </div>
+  <figure>
+    <img src="fig1_ru.png" alt="Путешествие одной macro-F1">
+    <figcaption>Весь путь: чистый базовый старт, стена на ~0.829, откат назад у ансамблей из деревьев &mdash; и прыжок, который случился только после перехода на территорию не-деревьев, завершившийся триумфом на публичном лидерборде.</figcaption>
+  </figure>
+</section>
+
+<!-- ===================== АКТ V ===================== -->
+<section class="page-break">
+  <h2><span class="act">Акт V — Переход порога</span>В чужую землю</h2>
+  <p class="dropcap">Я покинул уют деревьев и проверил семейства с принципиально иным устройством: нейросеть (MLP), ядровую машину (SVM-RBF), генеративные модели (QDA, гауссовы смеси). Каждую я мерил сразу по двум осям &mdash; насколько она <b>сильна</b> и насколько её ошибки <b>отличаются</b> от CatBoost.</p>
+  <p>Нейросеть пробила стену сразу (OOF 0.83677). Но в основу решения я положил <b>SVM-RBF</b> &mdash; гладкой, изогнутой границы, которую лестницы-деревья могут лишь приближать. Перебор ширины ядра, затем бэггинг трёх лучших дали <b>0.83331</b> &mdash; уже выше CatBoost &mdash; и, главное, его ошибки коррелируют с CatBoost лишь на <b>0.76</b> против ~0.9 у клонов.</p>
+  <figure>
+    <img src="fig2_ru.png" alt="Сильный и другой: две оси, нужные союзнику">
+    <figcaption>Ключевая мысль в одной картинке. Полезный союзник должен быть <b>сильным</b> (правее линии CatBoost) <b>и</b> <b>другим</b> (низко по вертикали). Генеративные модели чудесно разнообразны, но слишком слабы; деревья &mdash; недостаточно другие. Только <b>SVM</b> и <b>MLP</b> (золотые звёзды) попадают в полезную зону.</figcaption>
+  </figure>
+  <p>Затем я обвенчал два семейства простым фиксированным равновесным усреднением &mdash; <b>половина CatBoost, половина SVM</b>. Так родился <span class="mono">sub06</span>. На локальной CV &mdash; 0.83269; настоящее испытание было ещё впереди.</p>
+</section>
+
+<!-- ===================== АКТ VI ===================== -->
+<section class="page-break">
+  <h2><span class="act">Акт VI — Испытания</span>Искушение и ловушка</h2>
+  <p>Здесь история чуть не пошла под откос. Когда я позволил данным <em>подобрать</em> веса блендинга, оценка подскочила до соблазнительных <b>0.837</b>. Я едва не отправил это решение.</p>
+  <p>Тогда я провёл адверсариальную перепроверку &mdash; переобучил всё с нуля на свежих, независимых складках. Правда оказалась жестокой: бо&#769;льшая часть того &laquo;прироста&raquo; была <b>~0.006 чистого шума</b>, который веса просто запомнили и который <em>не</em> выжил бы на новых данных. Ложная вершина.</p>
+  <div class="callout c-trap">
+    <div class="callout-h">Ловушка, в которую я отказался падать</div>
+    Подбирать веса ансамбля на тех же данных, на которых ты их оцениваешь, &mdash; это самообман. Я выбросил подобранные веса и оставил <b>фиксированные, заданные заранее 0.5/0.5</b> &mdash; число, выбранное <em>до</em> взгляда на результат, которое нельзя переобучить.
+  </div>
+  <h3>Дисциплина, которая делает победу настоящей</h3>
+  <p>С этого момента каждое утверждение должно было пережить <b>парную, без утечек, повторную кросс-валидацию</b>: одни и те же свежие складки для ансамбля и для обычного CatBoost, скейлеры и импьютеры обучаются только внутри обучающей складки, без подглядывания. Под этим честным тестом кросс-семейный ансамбль обошёл одиночный CatBoost на <b>+0.0116 macro-F1, в плюсе в каждом повторе</b> &mdash; примерно в семь раз больше шумового поля.</p>
+  <div class="callout c-honest">
+    <div class="callout-h">Почему это &laquo;лучший подход&raquo;, а не просто лучшая оценка</div>
+    <ul style="margin:4px 0 0; list-style:none; padding-left:0;">
+      <li>&#10003; <b>Фиксированные веса 0.5/0.5, заданные заранее</b> &mdash; выбраны до взгляда на результат, переобучить нельзя</li>
+      <li>&#10003; <b>Парная повторная CV без утечек</b> &mdash; скейлеры/импьютеры обучаются только внутри обучающей складки</li>
+      <li>&#10003; <b>Задокументированное шумовое поле</b> (&plusmn;0.00169) как закон приёма/отклонения</li>
+      <li>&#10003; <b>Отбор по локальной CV</b> &mdash; никогда по публичному лидерборду</li>
+      <li>&#10003; <b>Воспроизводимость одной командой</b> (<span class="mono">run_all.py</span>, фикс. сиды, общие складки)</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== АКТ VII ===================== -->
+<section class="page-break">
+  <h2><span class="act">Акт VII — Награда</span>Прорыв</h2>
+  <p class="lead">Я загрузил <span class="mono">sub06</span>. Публичный лидерборд вернул <b class="accent">0.84157</b> &mdash; мой лучший результат с большим отрывом, и <em>выше</em> собственной локальной оценки. Стены больше не было. У меня получилось.</p>
+  <figure>
+    <img src="fig3_ru.png" alt="Подъём по публичному лидерборду">
+    <figcaption>Там, где это реально считается. Все попытки на одних деревьях сгрудились ниже пунктирной линии CatBoost; кросс-семейный ансамбль CatBoost+SVM (золотой) решительно её преодолел на <b>0.84157</b>.</figcaption>
+  </figure>
+  <p>Он даже сдвинул вверх упрямый Глубокий класс &mdash; его F1 вырос с <b>0.777 до 0.785</b>. Впервые самое слабое звено стронулось с места.</p>
+</section>
+
+<!-- ===================== АКТ VIII ===================== -->
+<section class="page-break">
+  <h2><span class="act">Акт VIII — Дорога назад</span>Найти истинный потолок</h2>
+  <p>Герой должен узнать, где настоящий край карты. И я двинулся дальше &mdash; честно. Я добавил самые декоррелированные семейства, какие смог найти: QDA и гауссовы смеси, чьи ошибки пересекаются с CatBoost лишь на <b>0.52&ndash;0.61</b>. Они были великолепно разнообразны&hellip; и слишком слабы (0.79&ndash;0.81), чтобы помочь простому усреднению. Я дал честному out-of-fold стекеру попробовать выжать из них пользу: он выдавил <b>+0.001</b> &mdash; внутри шума. Я сконструировал признаки специально под SVM и собрал более богатый, более разнообразный SVM-бэг. Оба вернулись с отрицательным результатом.</p>
+  <div class="callout c-honest">
+    <div class="callout-h">Честный финал</div>
+    Каждый оставшийся рычаг попадал внутрь шумового поля &plusmn;0.0017. <b>~0.834 &mdash; это честный потолок</b> для данного подхода: перекрытие Глубокий&harr;Лёгкий&harr;REM в этих синтетических данных частично неустранимо. Ясно сообщить об этом &mdash; вместо погони за случайной сотой &mdash; само по себе часть метода.
+  </div>
+  <p class="small">(Нейросеть остаётся единственным рычагом, измеримо выше шума &mdash; около +0.003 над любым не-нейросетевым путём &mdash; задокументированная дорога, по которой я не пошёл.)</p>
+</section>
+
+<!-- ===================== ЭПИЛОГ ===================== -->
+<section class="page-break">
+  <h2><span class="act">Эпилог</span>Чему я научился</h2>
+  <ul>
+    <li><b>Разнообразие бьёт грубую силу.</b> Прорыв принесла не более сильная модель, а <em>другая</em>. Ансамбль хорош ровно настолько, насколько в нём есть несогласие.</li>
+    <li><b>Спрашивай &laquo;что я делаю не так?&raquo;</b> Самым ценным ходом стало переосмысление задачи &mdash; увидеть, что &laquo;потолок данных&raquo; был на самом деле &laquo;потолком моего семейства моделей&raquo;.</li>
+    <li><b>Честность &mdash; это метод, а не добродетель.</b> Парная CV без утечек, фиксированные веса, шумовое поле и отказ настраиваться под лидерборд &mdash; вот что превращает число в результат, который можно защитить.</li>
+    <li><b>Знай, когда остановиться.</b> Нанести на карту истинный потолок &mdash; и сказать об этом &mdash; ценнее хрупкой лишней тысячной.</li>
+  </ul>
+  <p class="lead">Я мирно жил за стеной, принял её за край мира, мучился, задал лучший вопрос, перешёл на незнакомую землю, устоял перед лёгкой ложью &mdash; и вернулся с чем-то настоящим. <b>Я пробился &mdash; и могу это доказать.</b></p>
+
+  <h3>Приложение A &mdash; Полные результаты</h3>
+  <table>
+    <tr><th>Этап</th><th>Модель / идея</th><th>OOF macro-F1</th><th>Deep F1</th><th>Примечание</th></tr>
+    <tr><td>База</td><td>CatBoost (признаки + флаг пропуска)</td><td>0.82494</td><td>0.771</td><td>точка старта</td></tr>
+    <tr><td>Настройка</td><td>CatBoost + features_v1 (sub01)</td><td>0.82898</td><td>0.777</td><td>стена · public 0.83026</td></tr>
+    <tr><td>Сильнее</td><td>Мягкое голосование 4 деревьев (sub02)</td><td>0.81952</td><td>0.765</td><td class="warn">хуже</td></tr>
+    <tr><td>Сильнее</td><td>6 разных CatBoost (sub04)</td><td>0.82324</td><td>0.769</td><td class="warn">хуже</td></tr>
+    <tr><td>Кросс-семья</td><td>MLP сид-бэг (отложен)</td><td>0.83677</td><td>0.789</td><td>пробивает стену · errcorr 0.68</td></tr>
+    <tr><td>Кросс-семья</td><td>SVM-RBF grid + бэг</td><td>0.83331</td><td>0.785</td><td>errcorr 0.76</td></tr>
+    <tr class="win"><td>Финал</td><td>Ансамбль CatBoost + SVM (sub06)</td><td>0.83269</td><td>0.785</td><td>public LB <b>0.84157</b></td></tr>
+    <tr><td>Потолок</td><td>Мульти-семейный стек (QDA+GMM)</td><td>0.83374</td><td>&mdash;</td><td>+0.001 in-sample, в пределах шума &mdash; не честный парный прирост</td></tr>
+  </table>
+
+  <h3>Приложение B &mdash; Воспроизводимость</h3>
+  <p class="small">Одиннадцать ноутбуков Jupyter (<span class="mono">01_eda</span> &rarr; <span class="mono">11_multifamily_ensemble</span>), сгенерированных из единого источника истины и запускаемых от начала до конца одной командой:</p>
+  <p class="mono small">C:/ProgramData/anaconda3/python.exe run_all.py</p>
+  <p class="small">Пять фиксированных складок StratifiedKFold (сид 42) общие для всех ноутбуков, поэтому все out-of-fold матрицы вероятностей выровнены по строкам и напрямую сравнимы. Все сиды зафиксированы; CatBoost детерминирован (побитово одинаков между запусками). Шумовое поле &plusmn;0.00169 получено из &laquo;ворот&raquo; повторной CV 5&times;5; преимущество финального ансамбля подтверждено парной повторной CV на независимых складках.</p>
+
+  <div class="foot">Kaggle, Классификация стадий сна &mdash; macro-F1. Локальная CV &mdash; источник истины; публичный лидерборд использовался только для подтверждения, никогда для отбора. Автор: Расул Зейнулла.</div>
+</section>
+
+</body>
+</html>

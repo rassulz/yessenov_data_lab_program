@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Score That Hit a Wall</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 16mm 16mm; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font-family: Georgia, "DejaVu Serif", serif;
+    color: #20242c; font-size: 11pt; line-height: 1.55; margin: 0;
+  }
+  h1, h2, h3, .kicker, .stat, .cover-title, .tag, th, .callout-h {
+    font-family: "Segoe UI", "Helvetica Neue", Arial, "DejaVu Sans", sans-serif;
+  }
+  .ink { color: #1b2a4a; }
+  .accent { color: #1e8449; }
+  .warn { color: #c0392b; }
+
+  /* cover */
+  .cover { height: 252mm; display: flex; flex-direction: column; justify-content: center; }
+  .kicker { letter-spacing: .18em; text-transform: uppercase; font-size: 10pt; color: #2e86c1; font-weight: 600; }
+  .cover-title { font-size: 40pt; font-weight: 800; color: #1b2a4a; line-height: 1.05; margin: 10px 0 6px; }
+  .cover-sub { font-size: 15pt; color: #4a5568; margin-bottom: 26px; font-style: italic; }
+  .statband { background: #1b2a4a; color: #fff; border-radius: 10px; padding: 22px 26px; display: flex; align-items: center; gap: 18px; }
+  .statband .from { font-size: 22pt; opacity: .7; }
+  .statband .arrow { font-size: 22pt; opacity: .55; }
+  .statband .to { font-size: 38pt; font-weight: 800; color: #ffd24d; }
+  .statband .lbl { font-size: 10pt; opacity: .8; display:block; font-family:"Segoe UI",sans-serif; }
+  .tag { margin-top: 26px; font-size: 13.5pt; color: #1b2a4a; border-left: 4px solid #1e8449; padding-left: 14px; font-style: italic; }
+  .byline { margin-top: 30px; font-size: 11pt; color: #4a5568; font-family:"Segoe UI",sans-serif; }
+
+  .page-break { page-break-before: always; }
+  h2 { font-size: 19pt; color: #1b2a4a; margin: 26px 0 4px; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; }
+  h2 .act { color: #2e86c1; font-size: 11pt; letter-spacing:.12em; text-transform:uppercase; display:block; margin-bottom:2px;}
+  h3 { font-size: 13pt; color: #2c3e50; margin: 16px 0 2px; }
+  p { margin: 8px 0; }
+  .lead { font-size: 12pt; }
+  .dropcap::first-letter { font-size: 300%; font-weight: 700; color: #1e8449; float: left; line-height: .8; padding: 6px 8px 0 0; font-family:"Segoe UI",sans-serif; }
+
+  .callout { border-radius: 8px; padding: 12px 16px; margin: 14px 0; font-size: 10.5pt; }
+  .callout-h { font-weight: 700; font-size: 10pt; letter-spacing:.04em; text-transform: uppercase; margin-bottom: 3px; }
+  .c-insight { background: #eafaf1; border-left: 5px solid #1e8449; }
+  .c-insight .callout-h { color: #1e8449; }
+  .c-trap { background: #fdecea; border-left: 5px solid #c0392b; }
+  .c-trap .callout-h { color: #c0392b; }
+  .c-honest { background: #eef4fb; border-left: 5px solid #2e86c1; }
+  .c-honest .callout-h { color: #2e86c1; }
+
+  figure { margin: 16px 0 6px; text-align: center; page-break-inside: avoid; }
+  figure img { width: 100%; border: 1px solid #e2e8f0; border-radius: 6px; }
+  figcaption { font-size: 9.5pt; color: #667085; margin-top: 5px; font-family:"Segoe UI",sans-serif; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 9.6pt; font-family:"Segoe UI",sans-serif; page-break-inside: avoid; }
+  th { background: #1b2a4a; color: #fff; text-align: left; padding: 6px 8px; font-weight: 600; }
+  td { padding: 5px 8px; border-bottom: 1px solid #e6e9ef; }
+  tr:nth-child(even) td { background: #f6f8fb; }
+  .win td { background: #eafaf1 !important; font-weight: 700; }
+  .muted { color: #98a2b3; }
+  .mono { font-family: "DejaVu Sans Mono", Consolas, monospace; font-size: 9pt; }
+  .small { font-size: 9.5pt; color: #475467; }
+  ul { margin: 6px 0 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; }
+  .foot { margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 8px; font-size: 9pt; color: #98a2b3; font-family:"Segoe UI",sans-serif; }
+</style>
+</head>
+<body>
+
+<!-- ===================== COVER ===================== -->
+<section class="cover">
+  <div class="kicker">Kaggle · Sleep-Stage Classification · metric: macro-F1</div>
+  <div class="cover-title">The Score<br>That Hit a Wall</div>
+  <div class="cover-sub">A hero&rsquo;s journey through one model&rsquo;s fight to break 0.83 — and the single idea that finally did it.</div>
+  <div class="statband">
+    <div><span class="lbl">baseline (local CV)</span><span class="from">0.825</span></div>
+    <div class="arrow">&rarr;</div>
+    <div><span class="lbl">where I landed (public leaderboard)</span><span class="to">0.84157</span></div>
+  </div>
+  <div class="tag">&ldquo;I stopped trying to make my model <em>stronger</em>, and started teaching it to <em>disagree with itself</em>.&rdquo;</div>
+  <div class="byline"><b>Author:</b> Rassul Zeinulla &nbsp;·&nbsp; Reproducible pipeline of 11 notebooks, one command: <span class="mono">run_all.py</span></div>
+</section>
+
+<!-- ===================== PROLOGUE ===================== -->
+<section class="page-break">
+  <h2><span class="act">Prologue</span>The task, in one breath</h2>
+  <p class="lead">Given physiological sensors from a night of sleep &mdash; brain waves (EEG), muscle tone (EMG), eye movement (EOG), heart rate, breathing, blood oxygen &mdash; predict the sleep stage of every 30-second epoch: <b>Wake, Light, Deep,</b> or <b>REM</b>. Four classes. 9&nbsp;000 labeled epochs to learn from, 5&nbsp;000 to predict. The score is <b>macro-F1</b>: every class weighs the same, so the <em>weakest</em> class decides your fate.</p>
+  <div class="callout c-honest">
+    <div class="callout-h">The rule that shaped everything</div>
+    Macro-F1 doesn&rsquo;t reward overall accuracy &mdash; it rewards lifting your worst class. Mine was always <b>Deep (N3)</b>, forever confused with Light and REM. Every decision below was judged on honest out-of-fold (OOF) cross-validation, never on the public leaderboard &mdash; because the final rank is decided on a hidden 70% of the test set.
+  </div>
+  <p class="small">This document is written as a story on purpose. The method matters &mdash; but so does <em>why</em> each turn was taken. What follows is the real sequence of decisions, with the real numbers behind each one.</p>
+</section>
+
+<!-- ===================== ACT I ===================== -->
+<section class="page-break">
+  <h2><span class="act">Act I — The ordinary world</span>Once upon a baseline</h2>
+  <p class="dropcap">Life was good. I built a clean, honest pipeline: explore the data, lock five fixed cross-validation folds so every later experiment is comparable, engineer a handful of physiologically-motivated features (contrasts between EEG bands, a flag for the half-missing EOG channel), and train a <b>CatBoost</b> gradient-boosted tree. It handled the 50%-missing sensor natively and optimised macro-F1 directly.</p>
+  <p>It worked beautifully. <b>OOF macro-F1 = 0.82898.</b> On the public leaderboard it scored <b>0.83026</b>. I tuned its depth, learning rate, regularisation &mdash; the defaults won. I had a strong, deterministic, reproducible model. I was, frankly, content.</p>
+  <table>
+    <tr><th>Early model</th><th>OOF macro-F1</th><th>Deep (worst class)</th></tr>
+    <tr><td>CatBoost baseline (21 raw features + missing flag)</td><td>0.82494</td><td>0.771</td></tr>
+    <tr class="win"><td>CatBoost tuned + engineered features (sub01)</td><td>0.82898</td><td>0.777</td></tr>
+  </table>
+</section>
+
+<!-- ===================== ACT II ===================== -->
+<section>
+  <h2><span class="act">Act II — The call</span>The wall</h2>
+  <p>Then I tried to go higher. And I couldn&rsquo;t.</p>
+  <p>I added more features &mdash; band ratios, relative powers, autonomic combinations. Every group made it <em>worse</em>. I searched decision thresholds to rescue the Deep class &mdash; the optimum was &ldquo;change nothing.&rdquo; I bagged nine random seeds &mdash; pure variance reduction, no lift. To know whether any gain was even <em>real</em>, I built a repeated-CV gate: <b>0.82598 &plusmn; 0.00169</b>. That tiny &plusmn;0.0017 became my law: any improvement smaller than it is noise, not progress.</p>
+  <div class="callout c-trap">
+    <div class="callout-h">The wall</div>
+    No matter what I did to my CatBoost, I could not cross <b>~0.829</b>. I began to believe the comforting lie that every stuck competitor tells themselves: <em>&ldquo;this is just the ceiling of the data.&rdquo;</em>
+  </div>
+</section>
+
+<!-- ===================== ACT III ===================== -->
+<section>
+  <h2><span class="act">Act III — The refusal</span>Trying harder, falling back</h2>
+  <p>So I did what felt natural: I built ensembles. Surely many models together beat one? I combined CatBoost with RandomForest, ExtraTrees, GradientBoosting in a soft vote. I built a six-member ensemble of <em>diverse CatBoosts</em>. I stacked them.</p>
+  <p>They all made it <b>worse.</b> The soft vote fell to 0.81952. The CatBoost-diversity ensemble dropped to 0.82324 &mdash; below the single model. I was working harder and sliding backwards. It was, honestly, demoralising.</p>
+  <table>
+    <tr><th>&ldquo;Try harder&rdquo; attempt</th><th>OOF macro-F1</th><th>vs single CatBoost</th></tr>
+    <tr><td>Soft-vote: CatBoost + RF + ExtraTrees + GradBoost (sub02)</td><td>0.81952</td><td class="warn">&minus;0.009</td></tr>
+    <tr><td>Six diverse CatBoosts, equal-weight (sub04)</td><td>0.82324</td><td class="warn">&minus;0.006</td></tr>
+    <tr><td>Seed-bag of 9 CatBoosts (sub03)</td><td>0.82415</td><td class="warn">&minus;0.005</td></tr>
+  </table>
+  <p class="small">Every ensemble I could build was made of <em>trees</em>. I didn&rsquo;t yet see why that was the whole problem.</p>
+</section>
+
+<!-- ===================== ACT IV ===================== -->
+<section class="page-break">
+  <h2><span class="act">Act IV — The mentor is a question</span>The question that changed everything</h2>
+  <p class="lead">Instead of asking &ldquo;how do I make my model stronger?&rdquo;, I finally asked: <b>&ldquo;what am I doing <em>wrong</em>?&rdquo;</b></p>
+  <p>I investigated systematically &mdash; and the answer was hiding in plain sight. <b>Every single model I had ever tried was a tree.</b> CatBoost, RandomForest, ExtraTrees, GradientBoosting &mdash; all of them carve the world into the same axis-aligned rectangles. They share one way of being wrong. So when I averaged them, they all made the <em>same mistakes</em> on the <em>same epochs</em>. An ensemble of clones is still one model.</p>
+  <div class="callout c-insight">
+    <div class="callout-h">The realisation</div>
+    The 0.83 wall was never a limit of the <b>data</b>. It was the limit of a single <b>model family</b>. To break it, I didn&rsquo;t need a stronger tree &mdash; I needed an ally that thinks in a completely different shape, and therefore <em>fails in different places</em>.
+  </div>
+  <figure>
+    <img src="fig1_en.png" alt="The journey of a macro-F1 score">
+    <figcaption>The whole journey: a clean baseline, the wall at ~0.829, the backward slide of tree-only ensembles &mdash; and the leap that came only after crossing into non-tree territory, ending in the public-leaderboard triumph.</figcaption>
+  </figure>
+</section>
+
+<!-- ===================== ACT V ===================== -->
+<section class="page-break">
+  <h2><span class="act">Act V — Crossing the threshold</span>Into foreign territory</h2>
+  <p class="dropcap">I left the comfort of trees and tested families with a fundamentally different bias: a neural network (MLP), a kernel machine (SVM-RBF), generative models (QDA, Gaussian mixtures). I measured each on two axes at once &mdash; how <b>strong</b> it is, and how <b>different</b> its mistakes are from CatBoost&rsquo;s.</p>
+  <p>The neural net broke the wall immediately (OOF 0.83677). But I chose to build my solution around the <b>SVM-RBF</b> &mdash; a smooth, curved decision boundary that the staircase trees can only approximate. A grid search over its kernel width, then bagging the best three, gave <b>0.83331</b> &mdash; already past CatBoost &mdash; and, crucially, its errors correlate only <b>0.76</b> with CatBoost&rsquo;s, versus ~0.9 for clones.</p>
+  <figure>
+    <img src="fig2_en.png" alt="Strong and different: the two axes an ally needs">
+    <figcaption>The key insight in one picture. A useful ally must be <b>strong</b> (right of the CatBoost line) <b>and</b> <b>different</b> (low on the vertical axis). The generative models are wonderfully diverse but too weak; the trees are not different enough. Only <b>SVM</b> and <b>MLP</b> (gold stars) sit in the useful zone.</figcaption>
+  </figure>
+  <p>Then I married the two families with a simple, fixed, equal-weight average &mdash; <b>half CatBoost, half SVM</b>. This became <span class="mono">sub06</span>. On local CV it scored 0.83269; the real test was still to come.</p>
+</section>
+
+<!-- ===================== ACT VI ===================== -->
+<section class="page-break">
+  <h2><span class="act">Act VI — The trials</span>The temptation, and the trap</h2>
+  <p>Here the story almost went wrong. When I let the data <em>tune</em> the blend weights, the score jumped to a thrilling <b>0.837</b>. I nearly shipped it.</p>
+  <p>Then I ran an adversarial re-test &mdash; re-fitting everything from scratch on fresh, independent folds. The truth was brutal: most of that &ldquo;gain&rdquo; was <b>~0.006 of pure noise</b> that the weights had memorised and that would <em>not</em> survive on unseen data. A false summit.</p>
+  <div class="callout c-trap">
+    <div class="callout-h">The trap I refused to fall into</div>
+    Tuning ensemble weights on the same data you evaluate on is self-deception. I threw the tuned weights away and kept <b>fixed, a-priori 0.5/0.5</b> &mdash; a number chosen <em>before</em> seeing the result, which cannot overfit.
+  </div>
+  <h3>The discipline that makes a win real</h3>
+  <p>From then on, every claim had to survive a <b>paired, leak-free, repeated cross-validation</b>: the same fresh folds for the ensemble and for plain CatBoost, scalers and imputers fit inside each training fold only, no peeking. Under that honest test, the cross-family ensemble beat single CatBoost by <b>+0.0116 macro-F1, positive in every single repeat</b> &mdash; roughly seven times the noise floor.</p>
+  <div class="callout c-honest">
+    <div class="callout-h">Why this is the &ldquo;best approach&rdquo;, not just the best score</div>
+    <ul style="margin:4px 0 0; list-style:none; padding-left:0;">
+      <li>&#10003; <b>Fixed, a-priori 0.5/0.5 weights</b> &mdash; chosen before seeing the result, so they cannot overfit</li>
+      <li>&#10003; <b>Leak-free paired repeated cross-validation</b> &mdash; scalers/imputers fit inside each training fold only</li>
+      <li>&#10003; <b>A documented noise floor</b> (&plusmn;0.00169) as the accept/reject law</li>
+      <li>&#10003; <b>Selection on local CV</b> &mdash; never on the public leaderboard</li>
+      <li>&#10003; <b>One-command reproducibility</b> (<span class="mono">run_all.py</span>, fixed seeds, shared folds)</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== ACT VII ===================== -->
+<section class="page-break">
+  <h2><span class="act">Act VII — The reward</span>The breakthrough</h2>
+  <p class="lead">I uploaded <span class="mono">sub06</span>. The public leaderboard returned <b class="accent">0.84157</b> &mdash; my best by a wide margin, and <em>higher</em> than its own local score. The wall was gone. I did it.</p>
+  <figure>
+    <img src="fig3_en.png" alt="The public leaderboard climb">
+    <figcaption>Where it actually counts. Every tree-only attempt clustered below the dashed CatBoost line; the cross-family CatBoost+SVM ensemble (gold) cleared it decisively at <b>0.84157</b>.</figcaption>
+  </figure>
+  <p>It even nudged the stubborn Deep class upward &mdash; its F1 rose from <b>0.777 to 0.785</b>. For the first time, the weakest link had moved.</p>
+</section>
+
+<!-- ===================== ACT VIII ===================== -->
+<section class="page-break">
+  <h2><span class="act">Act VIII — The road back</span>Finding the true ceiling</h2>
+  <p>A hero must learn where the real edge of the map is. So I pushed on &mdash; honestly. I added the most decorrelated families I could find: QDA and Gaussian mixtures, whose mistakes overlap CatBoost&rsquo;s by only <b>0.52&ndash;0.61</b>. They were gloriously diverse&hellip; and too weak (0.79&ndash;0.81) to help a simple average. I let an honest out-of-fold stacker try to exploit them anyway: it squeezed out <b>+0.001</b> &mdash; inside the noise. I engineered features specifically for the SVM, and built a richer, more diverse SVM bag. Both came back negative.</p>
+  <div class="callout c-honest">
+    <div class="callout-h">An honest ending</div>
+    Every remaining lever landed inside the &plusmn;0.0017 noise floor. <b>~0.834 is the honest ceiling</b> for this approach: the Deep&harr;Light&harr;REM overlap in this synthetic data is partly irreducible. Reporting that clearly &mdash; rather than chasing a lucky decimal &mdash; is itself part of the method.</p>
+  </div>
+  <p class="small">(The neural network remains the one lever measurably above the noise &mdash; about +0.003 over any non-neural path &mdash; a documented road not taken.)</p>
+</section>
+
+<!-- ===================== EPILOGUE ===================== -->
+<section class="page-break">
+  <h2><span class="act">Epilogue</span>What I learned</h2>
+  <ul>
+    <li><b>Diversity beats brute force.</b> The breakthrough was not a stronger model; it was a <em>different</em> one. An ensemble is only as good as the disagreement inside it.</li>
+    <li><b>Ask &ldquo;what am I doing wrong?&rdquo;</b> The single most valuable move was reframing the problem &mdash; seeing that &ldquo;the data&rsquo;s ceiling&rdquo; was really &ldquo;my model family&rsquo;s ceiling.&rdquo;</li>
+    <li><b>Honesty is a method, not a virtue.</b> Leak-free paired CV, fixed weights, a noise floor, and refusing to tune on the leaderboard are what turn a number into a result you can defend.</li>
+    <li><b>Know when to stop.</b> Mapping the true ceiling &mdash; and saying so &mdash; is worth more than a fragile extra thousandth.</li>
+  </ul>
+  <p class="lead">I lived peacefully behind a wall, mistook it for the edge of the world, struggled, asked a better question, crossed into unfamiliar ground, resisted an easy lie, and came back with something real. <b>I broke through &mdash; and I can prove it.</b></p>
+
+  <h3>Appendix A &mdash; The full results</h3>
+  <table>
+    <tr><th>Stage</th><th>Model / idea</th><th>OOF macro-F1</th><th>Deep F1</th><th>Note</th></tr>
+    <tr><td>Baseline</td><td>CatBoost (raw + missing flag)</td><td>0.82494</td><td>0.771</td><td>the starting point</td></tr>
+    <tr><td>Tuned</td><td>CatBoost + features_v1 (sub01)</td><td>0.82898</td><td>0.777</td><td>the wall · public 0.83026</td></tr>
+    <tr><td>Try harder</td><td>Soft-vote of 4 trees (sub02)</td><td>0.81952</td><td>0.765</td><td class="warn">worse</td></tr>
+    <tr><td>Try harder</td><td>6 diverse CatBoosts (sub04)</td><td>0.82324</td><td>0.769</td><td class="warn">worse</td></tr>
+    <tr><td>Cross-family</td><td>MLP seed-bag (set aside)</td><td>0.83677</td><td>0.789</td><td>breaks the wall · errcorr 0.68</td></tr>
+    <tr><td>Cross-family</td><td>SVM-RBF grid + bag</td><td>0.83331</td><td>0.785</td><td>errcorr 0.76</td></tr>
+    <tr class="win"><td>Final</td><td>CatBoost + SVM ensemble (sub06)</td><td>0.83269</td><td>0.785</td><td>public LB <b>0.84157</b></td></tr>
+    <tr><td>Ceiling</td><td>Multi-family stack (QDA+GMM)</td><td>0.83374</td><td>&mdash;</td><td>+0.001 in-sample, within noise &mdash; not a fair paired gain</td></tr>
+  </table>
+
+  <h3>Appendix B &mdash; Reproducibility</h3>
+  <p class="small">Eleven Jupyter notebooks (<span class="mono">01_eda</span> &rarr; <span class="mono">11_multifamily_ensemble</span>), generated from a single source of truth and run end-to-end by one command:</p>
+  <p class="mono small">C:/ProgramData/anaconda3/python.exe run_all.py</p>
+  <p class="small">Five fixed StratifiedKFold folds (seed 42) are shared across every notebook, so all out-of-fold probability matrices are row-aligned and directly comparable. All seeds are pinned; CatBoost is deterministic (bit-identical across runs). The noise floor &plusmn;0.00169 comes from a 5&times;5 repeated-CV gate; the final ensemble&rsquo;s advantage was confirmed by a paired repeated-CV re-test on independent folds.</p>
+
+  <div class="foot">Kaggle Sleep-Stage Classification &mdash; macro-F1. Local CV is the source of truth; the public leaderboard was used only for confirmation, never for selection. Author: Rassul Zeinulla.</div>
+</section>
+
+</body>
+</html>

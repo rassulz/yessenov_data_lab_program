@@ -105,7 +105,7 @@ Lead with what the user just learned (better for the "best approach" defense):
 - Fix all seeds. Pipeline must rerun with one command for the "best approach" prize.
 
 ## Log (CV macro-F1 / public LB)
-Pipeline = 7 notebooks (`01_eda` → `07_robustness`), one-command rerun via
+Pipeline = 9 notebooks (`01_eda` → `09_mlp_ensemble`), one-command rerun via
 `C:/ProgramData/anaconda3/python.exe run_all.py`. Folds: StratifiedKFold(5, shuffle,
 seed=42), shared via `artifacts/folds.npz`. Primary metric = global OOF macro-F1.
 Full table in `results_log.csv`.
@@ -123,6 +123,8 @@ Full table in `results_log.csv`.
 | 07 robust | CatBoost RepeatedCV **(gate)** | features_v1 | **0.82598 ± 0.00169** | .851/.849/.773/.830 |
 | 07 robust | CatBoost seed-bag (K=9, sub03) | features_v1 | 0.82415 | .849/.847/.773/.828 |
 | 08 ensemble | CatBoost diversity ens. (sub04) | features_v1 | 0.82324 | .850/.847/.769/.827 |
+| 09 mlp | **MLP seed-bag (K=3)** | features_v1 | **0.83677** | .863/.854/**.789**/.842 |
+| 09 mlp | **CatBoost+MLP ensemble (sub05)** | features_v1 | **0.83711** | .862/.856/**.790**/.841 |
 
 Public LB (uploaded; private 70% decides — do NOT tune to these):
 | sub | OOF macro-F1 | public LB |
@@ -173,12 +175,35 @@ Robustness (step 07 — added after public LB confirmed OOF; honest near-ceiling
   features makes correlated errors, so averaging just pulls toward the (weaker-than-the-lucky-
   anchor) member mean. Confirmed negative — `sub04` is a documented diversity hedge, **not** a
   final pick. Same lesson as the seed-bag: averaging removes the anchor's luck, lands at honest center.
-- **Final private-LB pair recommendation:** `sub01` (single CatBoost, deterministic reference,
-  higher-variance, best public 0.83026) + `sub03` (seed-bag, variance-reduced, honest ~0.826).
-  `sub02` (soft-voting) is demoted — strictly worse on both OOF and public LB.
+Breakthrough (step 09 — the ~0.83 wall was a SINGLE-FAMILY limit, not a data limit):
+- Every model through step 08 is a **tree** (CatBoost/RF/ET/GB) → shared axis-aligned bias →
+  every tree-ensemble (sub02, sub04) made the *same* errors and could not move. Multi-agent
+  investigation tested non-tree families on the same folds: **MLP (neural net) breaks the wall.**
+- **MLP(256,128), α=1e-3, seed-bag K=3** (per-fold StandardScaler + train-median EOG impute):
+  OOF **0.83677**, and it finally lifts the weak **Deep** class **.777 → .789**. Error-correlation
+  with CatBoost **0.68** (vs ~0.9 tree-vs-tree) = genuinely diverse. SVM-RBF (0.8315) and
+  Nystroem+LogReg (0.8309) also edged CatBoost; KNN/LogReg/QDA were dead ends.
+- **Cross-family ensemble `0.5·CatBoost + 0.5·MLP` (sub05)** = OOF **0.83711**. Weights FIXED
+  a-priori — an OOF weight search inflated the score by ~0.006 of non-transferring noise (caught
+  by an adversarial re-test), so no weight tuning is used.
+- **Honest paired `RepeatedStratifiedKFold(5×5, seed=2026)`, leak-free both arms:** ensemble
+  **0.83669 ± 0.00099** vs single CatBoost(900 fixed iters) 0.82255 ± 0.00105, paired delta
+  **+0.01414**, positive in **5/5** repeats. (CatBoost at fixed iters is mildly handicapped vs its
+  early-stopped 0.826 gate; vs the fair gate the honest gain is **≈ +0.010** — still far past the
+  ±0.0017 noise floor.) Note the MLP **alone** (0.83677) ≈ the ensemble (0.83711): the MLP is the
+  driver; the blend is a model-risk hedge that also keeps Deep at .790.
+- Confirmed dead ends (do not retry): more CatBoost FE, threshold/calibration, EOG regime split,
+  Deep-class specialist, and any tree-only ensemble. Remaining ceiling = Deep↔Light/REM overlap in
+  feature space (needs new signal, not feature recombination).
+- **Final private-LB pair recommendation (updated):** `sub05` (CatBoost+MLP cross-family ensemble,
+  new best OOF 0.83711, lifts Deep) as **primary**, + `sub01` (single deterministic CatBoost,
+  validated reference, public 0.83026) as the hedge. `sub02`/`sub04` demoted (tree-only, strictly
+  worse). Upload `sub05` to confirm the public LB tracks the +0.008 OOF gain before finalizing.
 
 Submissions (`submissions/`, format `id,sleep_stage`, 5000 rows, ids 9000–13999):
-- `sub01_CatBoost_GBDT.csv` — **primary pick**, OOF 0.82898, **public 0.83026**.
+- `sub05_CatBoostPlusMLP_Ensemble.csv` — **new primary pick** (cross-family: CatBoost + MLP,
+  fixed 0.5/0.5), OOF **0.83711**, paired-CV +0.010 vs CatBoost, lifts Deep to .790. (public LB TBD)
+- `sub01_CatBoost_GBDT.csv` — deterministic CatBoost **reference hedge**, OOF 0.82898, **public 0.83026**.
 - `sub03_CatBoostSeedBagK9_GBDT.csv` — **variance-reduced safety** (K=9 seed-bag), OOF 0.82415.
   Recommended private-LB hedge in place of sub02.
 - `sub02_SoftVotingEnsemble_CatBoost-RandomForest-ExtraTrees-GradientBoosting.csv`

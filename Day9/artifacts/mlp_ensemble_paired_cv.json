@@ -1,0 +1,16 @@
+{
+  "n_repeats": 5,
+  "n_folds": 5,
+  "cat_iters": 900,
+  "pair_mlp_seeds": [
+    42,
+    7
+  ],
+  "cat_mean": 0.82255,
+  "cat_std": 0.00105,
+  "ens_mean": 0.83669,
+  "ens_std": 0.00099,
+  "delta_mean": 0.01414,
+  "delta_std": 0.00127,
+  "pos_repeats": 5
+}

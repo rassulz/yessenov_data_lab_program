@@ -1,0 +1,16 @@
+{
+  "weights": {
+    "catboost": 0.5,
+    "mlp": 0.5
+  },
+  "mlp_seeds": [
+    42,
+    7,
+    13
+  ],
+  "mlp_macro": 0.83677,
+  "anchor": 0.82898,
+  "ensemble_macro": 0.83711,
+  "errcorr_vs_cat": 0.68,
+  "beats_gate_seed42": true
+}

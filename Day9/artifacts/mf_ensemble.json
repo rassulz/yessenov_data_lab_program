@@ -1,0 +1,22 @@
+{
+  "members": [
+    "cat",
+    "svm"
+  ],
+  "eligible_new": [],
+  "fixed_weights": {
+    "cat": 0.5,
+    "svm": 0.5
+  },
+  "nested_weights": {
+    "cat": 0.1,
+    "svm": 0.9
+  },
+  "variant_oof": {
+    "fixed": 0.83269,
+    "nested": 0.83216,
+    "stack": 0.83215
+  },
+  "chosen": "fixed",
+  "best_oof": 0.83269
+}

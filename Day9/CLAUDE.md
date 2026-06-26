@@ -105,7 +105,7 @@ Lead with what the user just learned (better for the "best approach" defense):
 - Fix all seeds. Pipeline must rerun with one command for the "best approach" prize.
 
 ## Log (CV macro-F1 / public LB)
-Pipeline = 10 notebooks (`01_eda` → `10_svm_ensemble`), one-command rerun via
+Pipeline = 11 notebooks (`01_eda` → `11_multifamily_ensemble`), one-command rerun via
 `C:/ProgramData/anaconda3/python.exe run_all.py`. Folds: StratifiedKFold(5, shuffle,
 seed=42), shared via `artifacts/folds.npz`. Primary metric = global OOF macro-F1.
 Full table in `results_log.csv`.
@@ -127,15 +127,22 @@ Full table in `results_log.csv`.
 | 09 mlp | CatBoost+MLP ensemble (sub05) | features_v1 | 0.83711 | .862/.856/.790/.841 |
 | 10 svm | **SVM-RBF bag (grid top-3)** | features_v1 | **0.83331** | .863/.850/.785/.835 |
 | 10 svm | **CatBoost+SVM ensemble (sub06)** | features_v1 | **0.83269** | .859/.850/.785/.838 |
+| 11 multifam | QDA (generative, most decorrelated) | features_v1 | 0.80836 | .846/.827/.758/.802 |
+| 11 multifam | GMM(k=2) per-class Bayes | features_v1 | 0.78867 | .828/.804/.740/.782 |
+| 11 multifam | Nystroem+LogReg | features_v1 | 0.82304 | .854/.845/.765/.829 |
+| 11 multifam | Cat+SVM+QDA+GMM stack (honest) | features_v1 | 0.83374 | ≈ sub06 (within noise) |
 
 Public LB (uploaded; private 70% decides — do NOT tune to these):
 | sub | OOF macro-F1 | public LB |
 |-----|--------------|-----------|
-| sub01 CatBoost (single, features_v1) | 0.82898 | **0.83026** |
+| **sub06 CatBoost+SVM ensemble** | 0.83269 | **0.84157** |
+| sub01 CatBoost (single, features_v1) | 0.82898 | 0.83026 |
 | sub00 CatBoost baseline (raw21) | 0.82494 | 0.82809 |
 | sub03 CatBoost seed-bag K=9 | 0.82415 | 0.82820 |
 | sub02 SoftVotingEnsemble | 0.81952 | 0.82478 |
 | sub04 CatBoost diversity ensemble | 0.82324 | (not yet uploaded) |
+**sub06 (Cat+SVM) is the new best public 0.84157** — cross-family blending confirmed on the LB
+(public even > its OOF 0.83269; encouraging but private 70% decides, keep selecting on OOF/paired-CV).
 Public LB ordering == OOF ordering → local CV is trustworthy. sub03 (seed-bag) public 0.82820 <
 sub01 0.83026: seed 42 is lucky on the public split too; the bag's value is private-LB variance
 reduction, not a higher public number. The soft-voting ensemble genuinely hurts (confirmed on public).
@@ -197,6 +204,12 @@ Breakthrough (step 09 — the ~0.83 wall was a SINGLE-FAMILY limit, not a data l
 - Confirmed dead ends (do not retry): more CatBoost FE, threshold/calibration, EOG regime split,
   Deep-class specialist, and any tree-only ensemble. Remaining ceiling = Deep↔Light/REM overlap in
   feature space (needs new signal, not feature recombination).
+- **SVM ceiling probes (post step 11, also dead ends):** (1) SVM-specific FE — every extra group on
+  top of features_v1 *lowers* SVM OOF (relpower 0.8297, ratio 0.8288, +autonomic 0.8278, all-groups
+  0.8233 vs v1 0.8299); the smooth kernel dislikes the noise dims just like CatBoost. (2) Richer/diverse
+  SVM bag — no untested (C, gamma) beats the current best single C=3/g=0.02 (0.83305): C=8/g=0.01=0.8322,
+  g=0.03=0.8301, g=0.05=0.8289; random 18/28-feature subspaces are weak (0.807–0.829). The top-3 bag
+  (0.83331) is already optimal → the SVM member is at its ceiling.
 Chosen direction (step 10 — SVM-RBF, MLP set aside by preference):
 - Per the user's choice we do **not** ship the MLP; the non-tree partner is an **SVM-RBF**
   (`09_mlp_ensemble` stays on disk as an explored-but-unselected result). Same cross-family recipe.
@@ -213,9 +226,25 @@ Chosen direction (step 10 — SVM-RBF, MLP set aside by preference):
   0.0006) and two-family risk-hedging, not on a higher mean. (For reference, the unshipped MLP blend
   was higher: 0.83711.)
 - **Final private-LB pair recommendation:** `sub06` (CatBoost+SVM cross-family, the chosen pick) as
-  **primary**, + `sub01` (single deterministic CatBoost, validated reference, public 0.83026) as the
-  hedge. `sub02`/`sub04` demoted (tree-only). Upload `sub06` to confirm the public LB tracks the OOF
-  gain before finalizing.
+  **primary** (now confirmed best **public 0.84157**), + `sub01` (single deterministic CatBoost,
+  validated reference, public 0.83026) as the hedge. `sub02`/`sub04` demoted (tree-only).
+
+Multi-family / near-ceiling (step 11 — honest negative + a real diversity finding):
+- Added non-tree, non-MLP families on the shared folds: **QDA, LDA, GaussianNB, per-class GMM(k=2,3),
+  Nystroem+LogReg** (generic scaled-OOF runner + a guarded per-class-GMM Bayes rule that earlier crashed).
+- **Eligibility = strong AND decorrelated** (OOF ≥ anchor−2σ ≈ 0.8256, errcorr<0.75 vs Cat, <0.85 vs SVM):
+  **none qualified.** The generative families are *beautifully* decorrelated — QDA errcorr **0.61/0.65**,
+  GMM(2) **0.52/0.56** (better than SVM's 0.76 and even MLP's 0.68) — but individually too weak
+  (0.79–0.81). Nystroem is strong-ish (0.823) but too correlated with the SVM (both RBF). So the fixed
+  multi-family blend degenerated to Cat+SVM (paired delta 0.0) → **no sub07; sub06 stays primary.**
+- **Stacking probe** (honest nested-CV `cross_val_predict`, LogReg meta) — the one thing the eligibility
+  gate excluded: a meta-learner *can* use a weak-but-orthogonal member. Best honest stack
+  `cat+svm+qda+gmm2` (C=0.3) = **0.83374** vs sub06 0.83269 = **+0.001, WITHIN the 0.0017 noise floor**.
+  Adding Nystroem *hurts* (correlated with SVM). Hand-weighted small blends look higher (~0.835) but that
+  is in-sample weight tuning → not honest/shippable.
+- **Verdict: ~0.834 is the honest ceiling for the SVM/non-MLP path.** The generative-diversity finding is
+  real but too small to clear noise. For reference, the excluded MLP blend (0.83711) is still ~+0.003 above
+  any honest multi-family stack — the largest single lever left, if MLP is ever reconsidered.
 
 Submissions (`submissions/`, format `id,sleep_stage`, 5000 rows, ids 9000–13999):
 - `sub06_CatBoostPlusSVM_Ensemble.csv` — **chosen primary pick** (cross-family: CatBoost + SVM-RBF

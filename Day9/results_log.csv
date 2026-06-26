@@ -16,3 +16,11 @@ step,model,feature_set,oof_macro_f1,f1_Wake,f1_Light,f1_Deep,f1_REM,notes
 10_svm_ensemble,svm_rbf_bag,features_v1,0.83331,0.8627,0.8504,0.785,0.8351,"top-3 SVM-RBF bag [(3, 0.02), (5, 0.02), (2, 'scale')]; errcorr_vs_cat=0.759"
 10_svm_ensemble,catboost_plus_svm,features_v1,0.83269,0.859,0.8496,0.7845,0.8377,fixed 0.5/0.5 Cat+SVM; vs anchor 0.82898 (+0.00371); errcorr=0.759
 10_svm_ensemble,catboost_plus_svm_pairedCV,features_v1,0.83384,0.859,0.8496,0.7845,0.8377,paired 3x5: ens 0.83384 vs cat 0.82229 (delta +0.01155)
+11_multifamily,qda,features_v1,0.80836,0.8463,0.827,0.7583,0.8018,non-tree family; errcorr cat=0.605 svm=0.647
+11_multifamily,lda,features_v1,0.73836,0.7911,0.7595,0.6759,0.727,non-tree family; errcorr cat=0.462 svm=0.477
+11_multifamily,gnb,features_v1,0.62449,0.6953,0.6906,0.4727,0.6393,non-tree family; errcorr cat=0.364 svm=0.328
+11_multifamily,gmm2,features_v1,0.78867,0.8279,0.8041,0.7402,0.7824,non-tree family; errcorr cat=0.520 svm=0.560
+11_multifamily,gmm3,features_v1,0.7817,0.8191,0.8013,0.7297,0.7766,non-tree family; errcorr cat=0.495 svm=0.534
+11_multifamily,nystroem,features_v1,0.82304,0.8539,0.8447,0.7646,0.8289,non-tree family; errcorr cat=0.762 svm=0.801
+11_multifamily,mf_fixed,features_v1,0.83269,0.859,0.8496,0.7845,0.8377,"members=['cat', 'svm']; variants={'fixed': 0.83269, 'nested': 0.83216, 'stack': 0.83215}"
+11_multifamily,mf_pairedCV,features_v1,0.83384,0.859,0.8496,0.7845,0.8377,paired 3x5: MF 0.83384 vs Cat+SVM 0.83384 (delta +0.00000)

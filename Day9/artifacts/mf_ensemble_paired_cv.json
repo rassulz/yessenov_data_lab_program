@@ -1,0 +1,18 @@
+{
+  "n_repeats": 3,
+  "n_folds": 5,
+  "members": [
+    "cat",
+    "svm"
+  ],
+  "eligible_new": [],
+  "cat_mean": 0.82229,
+  "catsvm_mean": 0.83384,
+  "catsvm_std": 0.00062,
+  "mf_mean": 0.83384,
+  "mf_std": 0.00062,
+  "delta_vs_catsvm": 0.0,
+  "delta_std": 0.0,
+  "pos_repeats": 0,
+  "note": "multi-family arm uses FIXED a-priori weights (conservative, leak-free)"
+}

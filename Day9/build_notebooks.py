@@ -1399,6 +1399,334 @@ nb10 = make_nb([
 ])
 
 # ===========================================================================
+# 11_multifamily_ensemble.ipynb  (add decorrelated NON-tree families: QDA/GMM/Nystroem)
+# ===========================================================================
+# The Cat+SVM blend (sub06, public 0.84157) wins mostly on variance: SVM-RBF is only
+# moderately decorrelated from CatBoost (errcorr ~0.76). The biggest untapped lever is a
+# NEW, genuinely decorrelated non-tree family. Generative/probabilistic learners (QDA,
+# GaussianNB, per-class GMM) and a random-feature linear model (Nystroem+LogReg) have a
+# different inductive bias from BOTH trees and the RBF SVM. Measurement-first: measure each
+# family (strength + error-correlation vs CatBoost AND SVM), keep only the strong & decorrelated
+# ones, then build a multi-family ensemble with (a) fixed a-priori weights, (b) honest nested-CV
+# weights, (c) nested-CV LogReg stacking. Ship sub07 only if it beats sub06 on the paired CV.
+NB11_LOAD = r'''from sklearn.discriminant_analysis import (QuadraticDiscriminantAnalysis,
+                                              LinearDiscriminantAnalysis)
+from sklearn.naive_bayes import GaussianNB
+from sklearn.mixture import GaussianMixture
+from sklearn.kernel_approximation import Nystroem
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.model_selection import RepeatedStratifiedKFold, cross_val_predict
+from catboost import CatBoostClassifier
+
+cols = json.load(open(ART / "feature_cols.json"))["columns"]
+Xtr = pd.DataFrame(np.load(ART / "features_v1_train.npy"), columns=cols)
+Xte = pd.DataFrame(np.load(ART / "features_v1_test.npy"), columns=cols)
+y = np.load(ART / "y_train.npy")
+test_ids = np.load(ART / "test_ids.npy")
+folds = load_folds()
+gate = json.load(open(ART / "repeated_cv_gate.json"))
+bp = json.load(open(ART / "catboost_best_params.json"))
+
+# Reuse the two deployed members WITHOUT retraining (saved, row-aligned to the shared folds).
+cat_oof = np.load(ART / "catboost_tuned_oof.npy"); cat_test = np.load(ART / "catboost_tuned_test.npy")
+svm_oof = np.load(ART / "svm_oof.npy"); svm_test = np.load(ART / "svm_test.npy")
+anchor = macro_f1(y, cat_oof.argmax(1)); svm_macro = macro_f1(y, svm_oof.argmax(1))
+cat_wrong = (cat_oof.argmax(1) != y).astype(int)
+svm_wrong = (svm_oof.argmax(1) != y).astype(int)
+print("anchor CatBoost:", round(anchor, 5), "| SVM bag:", round(svm_macro, 5),
+      "| gate std:", gate["std"])
+
+def scaled_fold(Xdf, tr_idx, va_idx):
+    """Train-fold-only EOG median impute + StandardScaler; return scaled arrays."""
+    Xt, Xv = Xdf.iloc[tr_idx].copy(), Xdf.iloc[va_idx].copy()
+    med = Xt[EOG].median(); Xt[EOG] = Xt[EOG].fillna(med); Xv[EOG] = Xv[EOG].fillna(med)
+    sc = StandardScaler().fit(Xt.values)
+    return sc.transform(Xt.values), sc.transform(Xv.values), sc, med'''
+
+NB11_FAMILIES = r'''def scaled_proba_oof(make_est, Xdf, ydat, Xtest_df, the_folds):
+    """Generic non-tree OOF: per fold scale+impute on the train fold, fit, predict_proba."""
+    ncl = len(CLASSES)
+    oof = np.zeros((len(ydat), ncl)); test_p = np.zeros((len(Xtest_df), ncl))
+    for tr_idx, va_idx in the_folds:
+        Xt, Xv, Xe = Xdf.iloc[tr_idx].copy(), Xdf.iloc[va_idx].copy(), Xtest_df.copy()
+        med = Xt[EOG].median()
+        for d in (Xt, Xv, Xe):
+            d[EOG] = d[EOG].fillna(med)
+        sc = StandardScaler().fit(Xt.values)
+        Xts, Xvs, Xes = sc.transform(Xt.values), sc.transform(Xv.values), sc.transform(Xe.values)
+        m = make_est(); m.fit(Xts, ydat[tr_idx])
+        oof[va_idx] = _aligned_proba(m, Xvs)
+        test_p += _aligned_proba(m, Xes) / len(the_folds)
+    return oof, test_p
+
+
+class GMMClassifier:
+    """Generative Bayes: one full-covariance GaussianMixture per class; posterior
+    proportional to prior * density. reg_covar keeps covariances non-singular."""
+    def __init__(self, n_components=2, reg_covar=1e-3, seed=SEED):
+        self.k, self.reg, self.seed = n_components, reg_covar, seed
+    def fit(self, X, yv):
+        self.classes_ = np.unique(yv); self.gmms_, self.logpri_ = [], []
+        for c in self.classes_:
+            g = GaussianMixture(self.k, covariance_type="full", reg_covar=self.reg,
+                                random_state=self.seed, max_iter=200).fit(X[yv == c])
+            self.gmms_.append(g); self.logpri_.append(np.log((yv == c).mean()))
+        return self
+    def predict_proba(self, X):
+        logp = np.column_stack([g.score_samples(X) + lp
+                                for g, lp in zip(self.gmms_, self.logpri_)])
+        logp -= logp.max(1, keepdims=True); p = np.exp(logp)
+        return p / p.sum(1, keepdims=True)
+
+
+FAMILIES = {
+    "qda":      lambda: QuadraticDiscriminantAnalysis(reg_param=0.1),
+    "lda":      lambda: LinearDiscriminantAnalysis(),
+    "gnb":      lambda: GaussianNB(),
+    "gmm2":     lambda: GMMClassifier(2),
+    "gmm3":     lambda: GMMClassifier(3),
+    "nystroem": lambda: make_pipeline(
+                    Nystroem(gamma=0.02, n_components=300, random_state=SEED),
+                    LogisticRegression(max_iter=2000, C=1.0)),
+}'''
+
+NB11_MEASURE = r'''# Measure each family: OOF macro-F1, Deep F1, and error-correlation vs BOTH CatBoost and SVM.
+# Each fit is guarded so one family failing (e.g. singular covariance) skips, not kills the run.
+results = {}
+for name, mk in FAMILIES.items():
+    try:
+        oof, tst = scaled_proba_oof(mk, Xtr, y, Xte, folds)
+    except Exception as e:
+        print(f"  {name:<9} FAILED: {type(e).__name__}: {e}")
+        continue
+    m = macro_f1(y, oof.argmax(1))
+    wrong = (oof.argmax(1) != y).astype(int)
+    ec_cat = float(np.corrcoef(wrong, cat_wrong)[0, 1])
+    ec_svm = float(np.corrcoef(wrong, svm_wrong)[0, 1])
+    pcf = per_class_f1(y, oof.argmax(1))
+    np.save(ART / f"{name}_oof.npy", oof); np.save(ART / f"{name}_test.npy", tst)
+    results[name] = {"oof": oof, "test": tst, "macro": m,
+                     "ec_cat": ec_cat, "ec_svm": ec_svm, "deep": pcf["Deep"]}
+    print(f"  {name:<9} OOF={m:.5f}  Deep={pcf['Deep']:.4f}  errcorr cat={ec_cat:.3f} svm={ec_svm:.3f}")
+    log_result("11_multifamily", name, "features_v1", m, pcf,
+               f"non-tree family; errcorr cat={ec_cat:.3f} svm={ec_svm:.3f}")
+
+# Eligible iff strong enough (not a weak dragger) AND decorrelated from BOTH cat and svm.
+STRENGTH_FLOOR = anchor - 2 * gate["std"]
+eligible = [n for n, r in results.items()
+            if r["macro"] >= STRENGTH_FLOOR and r["ec_cat"] < 0.75 and r["ec_svm"] < 0.85]
+print(f"\nstrength floor (anchor - 2*gate.std) = {STRENGTH_FLOOR:.5f}")
+print("ELIGIBLE non-tree families (strong + decorrelated from cat & svm):", eligible)'''
+
+NB11_ENSEMBLES = r'''# Members = CatBoost + SVM (reused) + eligible new families. Three leak-free combinations.
+member_oof = {"cat": cat_oof, "svm": svm_oof}
+member_test = {"cat": cat_test, "svm": svm_test}
+for n in eligible:
+    member_oof[n] = results[n]["oof"]; member_test[n] = results[n]["test"]
+names = list(member_oof.keys())
+nontree = [n for n in names if n != "cat"]
+print("ensemble members:", names)
+
+# (a) Fixed a-priori weights: half mass to CatBoost (tree), half split across non-tree members.
+w_fixed = {"cat": 0.5}
+for n in nontree:
+    w_fixed[n] = 0.5 / len(nontree)
+ens_fixed_oof = sum(w_fixed[n] * member_oof[n] for n in names)
+ens_fixed_test = sum(w_fixed[n] * member_test[n] for n in names)
+mf_fixed = macro_f1(y, ens_fixed_oof.argmax(1))
+w_fixed_d = {k: round(float(v), 3) for k, v in w_fixed.items()}
+print(f"(a) fixed weights {w_fixed_d} -> OOF {mf_fixed:.5f}")
+
+# (b) Honest nested-CV convex weights: for each held-out fold, grid-search convex weights on the
+#     OTHER folds' OOF and apply to the held-out fold. Aggregated => leak-free OOF (NOT a full-OOF
+#     search, which previously inflated the score by ~0.006).
+def comps(total, parts):
+    if parts == 1:
+        yield (total,); return
+    for i in range(total + 1):
+        for rest in comps(total - i, parts - 1):
+            yield (i,) + rest
+
+def best_convex_weights(idx, steps=10):
+    mats = [member_oof[n][idx] for n in names]; yi = y[idx]; best_w, best_s = None, -1.0
+    for comp in comps(steps, len(names)):
+        w = np.array(comp) / steps
+        s = macro_f1(yi, sum(wi * mm for wi, mm in zip(w, mats)).argmax(1))
+        if s > best_s:
+            best_s, best_w = s, w
+    return best_w
+
+ens_nested_oof = np.zeros_like(cat_oof)
+for tr_idx, va_idx in folds:
+    w = best_convex_weights(tr_idx)
+    ens_nested_oof[va_idx] = sum(w[i] * member_oof[n][va_idx] for i, n in enumerate(names))
+mf_nested = macro_f1(y, ens_nested_oof.argmax(1))
+w_full = best_convex_weights(np.arange(len(y)))                 # deployed test weights
+w_full_d = {n: round(float(w_full[i]), 3) for i, n in enumerate(names)}
+ens_nested_test = sum(w_full[i] * member_test[n] for i, n in enumerate(names))
+print(f"(b) nested-CV weights -> honest OOF {mf_nested:.5f} | deployed weights {w_full_d}")
+
+# (c) Nested-CV stacking: multinomial LogisticRegression meta over the members' OOF probability
+#     columns, honest via cross_val_predict on the shared folds; refit on full members for test.
+stack_X_oof = np.hstack([member_oof[n] for n in names])
+stack_X_test = np.hstack([member_test[n] for n in names])
+meta = LogisticRegression(max_iter=3000, C=1.0)
+stack_oof = cross_val_predict(meta, stack_X_oof, y, cv=folds, method="predict_proba")
+mf_stack = macro_f1(y, stack_oof.argmax(1))
+meta.fit(stack_X_oof, y)
+stack_test = meta.predict_proba(stack_X_test)
+print(f"(c) nested-CV stack (LogReg meta) -> honest OOF {mf_stack:.5f}")
+
+# Choose the best HONEST variant.
+variants = {"fixed": (mf_fixed, ens_fixed_oof, ens_fixed_test),
+            "nested": (mf_nested, ens_nested_oof, ens_nested_test),
+            "stack": (mf_stack, stack_oof, stack_test)}
+best_name = max(variants, key=lambda k: variants[k][0])
+mf_best, mf_oof, mf_test = variants[best_name]
+variant_oof = {k: round(float(v[0]), 5) for k, v in variants.items()}
+print("\nvariant OOF:", variant_oof, "| chosen:", best_name)
+print(f"chosen multi-family OOF {mf_best:.5f} vs sub06 Cat+SVM 0.83269 vs anchor {anchor:.5f}")
+print("multi-family per-class F1:", per_class_f1(y, mf_oof.argmax(1)))
+np.save(ART / "mf_ensemble_oof.npy", mf_oof); np.save(ART / "mf_ensemble_test.npy", mf_test)
+json.dump({"members": names, "eligible_new": eligible, "fixed_weights": w_fixed_d,
+           "nested_weights": w_full_d, "variant_oof": variant_oof, "chosen": best_name,
+           "best_oof": round(float(mf_best), 5)}, open(ART / "mf_ensemble.json", "w"), indent=2)
+log_result("11_multifamily", f"mf_{best_name}", "features_v1", mf_best,
+           per_class_f1(y, mf_oof.argmax(1)), f"members={names}; variants={variant_oof}")'''
+
+NB11_PAIRED = r'''# Honest paired RepeatedStratifiedKFold(5x3, seed=2026). Three arms on IDENTICAL folds:
+# single CatBoost, Cat+SVM (the sub06 bar), and the FIXED-weight multi-family blend (the
+# conservative, fully leak-free family-contribution check). Both non-cat arms refit per fold:
+# CatBoost at fixed iterations (no early-stop peek), SVM top-2 + eligible families with scaler/
+# impute fit inside the train fold.
+N_REP = 3
+PAIR_TOP = json.load(open(ART / "svm_grid.json"))["topk"][:2]
+PAIR_FAMILIES = list(eligible)
+CAT_ITERS = 900
+rskf = RepeatedStratifiedKFold(n_splits=N_FOLDS, n_repeats=N_REP, random_state=2026)
+splits = list(rskf.split(np.zeros(len(y)), y))
+
+def make_cat_fixed(seed=SEED):
+    return CatBoostClassifier(loss_function="MultiClass", eval_metric="TotalF1:average=Macro",
+        iterations=CAT_ITERS, learning_rate=bp["lr"], depth=bp["depth"], l2_leaf_reg=bp["l2"],
+        random_seed=seed, allow_writing_files=False, thread_count=-1, verbose=False)
+
+cat_s, cs_s, mf_s = [], [], []
+for r in range(N_REP):
+    cat_o = np.zeros((len(y), len(CLASSES)))
+    svm_o = np.zeros((len(y), len(CLASSES)))
+    fam_o = {n: np.zeros((len(y), len(CLASSES))) for n in PAIR_FAMILIES}
+    for tr_idx, va_idx in splits[r * N_FOLDS:(r + 1) * N_FOLDS]:
+        cb = make_cat_fixed(); cb.fit(Xtr.iloc[tr_idx], y[tr_idx])
+        cat_o[va_idx] = _aligned_proba(cb, Xtr.iloc[va_idx])
+        Xts, Xvs, _, _ = scaled_fold(Xtr, tr_idx, va_idx)
+        for cfg in PAIR_TOP:
+            m = SVC(C=cfg["C"], gamma=cfg["gamma"], kernel="rbf", probability=True, random_state=SEED)
+            m.fit(Xts, y[tr_idx]); svm_o[va_idx] += _aligned_proba(m, Xvs) / len(PAIR_TOP)
+        for n in PAIR_FAMILIES:
+            est = FAMILIES[n](); est.fit(Xts, y[tr_idx])
+            fam_o[n][va_idx] = _aligned_proba(est, Xvs)
+    nt = 1 + len(PAIR_FAMILIES)
+    mf = 0.5 * cat_o + (0.5 / nt) * svm_o + sum((0.5 / nt) * fam_o[n] for n in PAIR_FAMILIES)
+    cat_s.append(macro_f1(y, cat_o.argmax(1)))
+    cs_s.append(macro_f1(y, (0.5 * cat_o + 0.5 * svm_o).argmax(1)))
+    mf_s.append(macro_f1(y, mf.argmax(1)))
+    print(f"  repeat {r + 1}: Cat {cat_s[-1]:.5f} | Cat+SVM {cs_s[-1]:.5f} | MultiFam {mf_s[-1]:.5f}")
+
+cat_s, cs_s, mf_s = np.array(cat_s), np.array(cs_s), np.array(mf_s)
+d = mf_s - cs_s
+print(f"\nPAIRED {N_REP}x{N_FOLDS} (seed 2026):")
+print(f"  single Cat     : {cat_s.mean():.5f} +/- {cat_s.std():.5f}")
+print(f"  Cat+SVM (sub06): {cs_s.mean():.5f} +/- {cs_s.std():.5f}")
+print(f"  MultiFamily    : {mf_s.mean():.5f} +/- {mf_s.std():.5f}")
+print(f"  delta MultiFam vs Cat+SVM: {d.mean():+.5f} +/- {d.std():.5f}  (positive in {int((d > 0).sum())}/{N_REP})")
+print(f"  beats gate ({gate['std']:.5f})?", bool(d.mean() > gate["std"]))
+json.dump({"n_repeats": N_REP, "n_folds": N_FOLDS, "members": names, "eligible_new": eligible,
+           "cat_mean": round(float(cat_s.mean()), 5), "catsvm_mean": round(float(cs_s.mean()), 5),
+           "catsvm_std": round(float(cs_s.std()), 5), "mf_mean": round(float(mf_s.mean()), 5),
+           "mf_std": round(float(mf_s.std()), 5), "delta_vs_catsvm": round(float(d.mean()), 5),
+           "delta_std": round(float(d.std()), 5), "pos_repeats": int((d > 0).sum()),
+           "note": "multi-family arm uses FIXED a-priori weights (conservative, leak-free)"},
+          open(ART / "mf_ensemble_paired_cv.json", "w"), indent=2)
+log_result("11_multifamily", "mf_pairedCV", "features_v1", float(mf_s.mean()),
+           per_class_f1(y, mf_oof.argmax(1)),
+           f"paired {N_REP}x{N_FOLDS}: MF {mf_s.mean():.5f} vs Cat+SVM {cs_s.mean():.5f} (delta {d.mean():+.5f})")'''
+
+NB11_SUB = r'''# Ship sub07 only if the new families ROBUSTLY help (fixed-weight multi-family beats Cat+SVM in
+# every paired repeat) AND the chosen deployed variant beats sub06's OOF. Else keep sub06.
+SUB06_OOF = 0.83269
+families_help = bool((d.mean() > 0) and (int((d > 0).sum()) >= N_REP))
+beats_oof = bool(mf_best > SUB06_OOF)
+ship = families_help and beats_oof
+print("families_help (paired 3/3 & delta>0):", families_help,
+      "| chosen OOF > sub06 (%.5f)?" % SUB06_OOF, beats_oof, "| SHIP sub07?", ship)
+if ship:
+    tag = "-".join(["CatBoost", "SVM"] + [n.upper() for n in eligible])
+    name7 = f"sub07_MultiFamily_{tag}_Ensemble.csv"
+    pred7 = mf_test.argmax(1).astype(int)
+    sub7 = pd.DataFrame({"id": test_ids, "sleep_stage": pred7})
+    assert sub7.shape == (5000, 2)
+    assert sub7["id"].tolist() == list(range(9000, 14000))
+    assert sub7["sleep_stage"].isin(CLASSES).all()
+    sub7.to_csv(SUB / name7, index=False)
+    print("WROTE", SUB / name7, "| variant", best_name, "| OOF", round(float(mf_best), 5))
+    print("class counts:", sub7["sleep_stage"].value_counts().sort_index().to_dict())
+    base = np.load(ART / "svm_ensemble_test.npy")
+    print("sub07 vs sub06 differ on", int((mf_test.argmax(1) != base.argmax(1)).sum()), "of 5000 rows")
+else:
+    print("Multi-family did NOT clear the bar -> NOT shipping sub07; sub06 stays primary (honest).")'''
+
+nb11 = make_nb([
+    md("# 11 — Multi-family ensemble: add decorrelated non-tree families\n"
+       "`sub06` (CatBoost + SVM-RBF, public **0.84157**) wins mostly on **variance** — SVM is only "
+       "moderately decorrelated from CatBoost (error-corr ~0.76). The next lever is a **new, more "
+       "decorrelated non-tree family**. Generative/probabilistic learners (**QDA, GaussianNB, "
+       "per-class GMM**) and a random-feature linear model (**Nystroem+LogReg**) use a bias different "
+       "from *both* trees and the RBF SVM.\n\n"
+       "**Measurement-first:** measure each family's OOF strength and error-correlation vs **both** "
+       "CatBoost and SVM; keep only the strong & decorrelated ones. Then combine via (a) fixed "
+       "a-priori weights, (b) **honest nested-CV** weights, (c) nested-CV LogReg **stacking** — all "
+       "leak-free. Ship `sub07` only if it beats `sub06` on the paired CV. (MLP excluded by choice.)"),
+    code(TOOLBOX),
+    code(LOG_HELPER),
+    code(NB11_LOAD),
+    md("## Generic scaled-OOF runner + the family zoo\nNon-tree models need per-fold scaling + EOG "
+       "imputation (`scaled_proba_oof`). `GMMClassifier` is a generative Bayes rule: one "
+       "full-covariance Gaussian mixture per class, posterior ∝ prior · density (`reg_covar` keeps it "
+       "non-singular — the part a prior attempt crashed on). Each fit is guarded."),
+    code(NB11_FAMILIES),
+    md("## Measure strength + decorrelation\nA new member only helps an ensemble if it is **strong** "
+       "(not a weak dragger like RF/ET/GB) **and decorrelated**. Eligibility: OOF ≥ anchor − 2σ AND "
+       "error-corr < 0.75 vs CatBoost AND < 0.85 vs SVM."),
+    code(NB11_MEASURE),
+    md("## Multi-family ensembles — fixed / nested-CV weights / stacking\nThree leak-free "
+       "combinations of CatBoost + SVM + the eligible families. (b) and (c) tune **out-of-fold only** "
+       "(per-fold weight fit; `cross_val_predict` meta) — never on the full OOF, which the audit "
+       "showed inflates the score by ~0.006 of non-transferring noise. We deploy the best honest variant."),
+    code(NB11_ENSEMBLES),
+    md("## Honest headline — paired `RepeatedStratifiedKFold(5×3)` vs Cat+SVM (sub06)\nThe bar is "
+       "**sub06**, not single CatBoost. The multi-family arm uses **fixed** weights here — a "
+       "conservative, fully leak-free check that the new families genuinely add signal across many folds."),
+    code(NB11_PAIRED),
+    md("## Submission (`sub07`) — conditional\nShipped only if the new families robustly help "
+       "(positive paired delta in every repeat) **and** the deployed variant beats sub06's OOF. "
+       "Otherwise this is an honest negative result and sub06 stays primary."),
+    code(NB11_SUB),
+    md("### Takeaways\n"
+       "- A member helps only when **strong AND decorrelated** — the eligibility gate enforces both, "
+       "so weak/correlated families are dropped (the RF/ET/GB lesson, now automated).\n"
+       "- Honest weighting/stacking is done strictly out-of-fold; the deployed variant is the best "
+       "*honest*-OOF combination, not an in-sample-tuned one.\n"
+       "- `sub07` ships only on a paired-CV win over `sub06`; the private-LB pick stays chosen on "
+       "OOF/paired-CV, never on the public leaderboard.\n"
+       "- Remaining ceiling is still the Deep↔Light/REM overlap — watch the Deep F1 column to see if a "
+       "generative family (QDA/GMM) reshapes that boundary where trees and SVM could not."),
+])
+
+# ===========================================================================
 # Write all notebooks
 # ===========================================================================
 NOTEBOOKS = {
@@ -1412,6 +1740,7 @@ NOTEBOOKS = {
     "08_catboost_ensemble.ipynb": nb08,
     "09_mlp_ensemble.ipynb": nb09,
     "10_svm_ensemble.ipynb": nb10,
+    "11_multifamily_ensemble.ipynb": nb11,
 }
 
 if __name__ == "__main__":

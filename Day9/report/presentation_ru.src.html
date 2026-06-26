@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Классификация стадий сна — защита проекта</title>
+<style>
+  @page { size: 13.333in 7.5in; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    color: #20242c; background: #fff;
+  }
+  /* palette */
+  :root {
+    --ink: #1b2a4a; --accent: #1e8449; --blue: #2e86c1;
+    --gold: #d4a017; --warn: #c0392b; --muted: #667085; --line: #e2e8f0;
+  }
+  .slide {
+    position: relative;
+    width: 13.333in; height: 7.5in;
+    padding: 0.62in 0.7in 0.55in 0.7in;
+    page-break-after: always;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .slide:last-child { page-break-after: auto; }
+
+  /* top brand bar */
+  .topbar {
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-bottom: 2px solid var(--line); padding-bottom: 9px; margin-bottom: 4px;
+  }
+  .kicker {
+    letter-spacing: .15em; text-transform: uppercase;
+    font-size: 10.5pt; color: var(--blue); font-weight: 700;
+  }
+  .pageno { font-size: 10pt; color: var(--muted); letter-spacing: .08em; }
+  .section-tag {
+    display: inline-block; font-size: 10.5pt; font-weight: 700; letter-spacing:.14em;
+    text-transform: uppercase; color: #fff; background: var(--accent);
+    padding: 3px 12px; border-radius: 4px;
+  }
+
+  /* generic headings */
+  h1 { font-size: 41pt; font-weight: 800; color: var(--ink); line-height: 1.04; }
+  h2 { font-size: 29pt; font-weight: 800; color: var(--ink); line-height: 1.08; }
+  .sub { font-size: 16.5pt; color: #45506a; font-style: italic; }
+
+  /* ---------- SLIDE 1 (cover) ---------- */
+  .cover-body { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 14px; }
+  .cover-desc { font-size: 13pt; color: #3b4456; line-height: 1.5; max-width: 9.6in; font-family: Georgia, serif; }
+  .chips { display: flex; gap: 10px; margin-top: 4px; }
+  .chip {
+    font-size: 12pt; font-weight: 600; color: var(--ink);
+    border: 1.5px solid var(--ink); border-radius: 999px; padding: 5px 16px; background:#f7f9fc;
+  }
+  .statband {
+    margin-top: 8px; background: var(--ink); color: #fff; border-radius: 12px;
+    display: flex; align-items: stretch; overflow: hidden;
+  }
+  .statband .cell { padding: 16px 26px; flex: 1; border-right: 1px solid rgba(255,255,255,.14); }
+  .statband .cell:last-child { border-right: none; }
+  .statband .big { font-size: 24pt; font-weight: 800; color: #ffd24d; line-height: 1; }
+  .statband .big.small { font-size: 19pt; }
+  .statband .lbl { font-size: 10.5pt; opacity: .82; margin-top: 6px; display:block; }
+  .hard {
+    margin-top: 12px; font-size: 12pt; color: #3b4456; font-family: Georgia, serif;
+    border-left: 4px solid var(--warn); padding-left: 14px; line-height: 1.5; max-width: 10in;
+  }
+  .byline { margin-top: 16px; font-size: 11pt; color: var(--muted); }
+  .byline b { color: var(--ink); }
+
+  /* ---------- two-column content slides ---------- */
+  .body2 { flex: 1; display: flex; gap: 0.5in; align-items: stretch; margin-top: 12px; }
+  .col-text { flex: 1.02; display: flex; flex-direction: column; }
+  .col-fig  { flex: 1.18; display: flex; flex-direction: column; justify-content: center; }
+  .col-fig.wide { flex: 1.32; }
+  .col-text.narrow { flex: 0.92; }
+
+  .lead { font-size: 13.5pt; color: #2c3e50; margin: 10px 0 12px; line-height: 1.4; font-weight:600; }
+  ul.points { list-style: none; display: flex; flex-direction: column; gap: 11px; }
+  ul.points li { position: relative; padding-left: 24px; font-size: 12pt; line-height: 1.42; color: #2f3947; font-family: Georgia, serif; }
+  ul.points li::before {
+    content: ""; position: absolute; left: 2px; top: 7px;
+    width: 9px; height: 9px; border-radius: 2px; background: var(--accent);
+  }
+  ul.points li b { color: var(--ink); font-family: "Segoe UI", sans-serif; }
+  .num { color: var(--blue); font-weight: 700; }
+
+  figure { display: flex; flex-direction: column; height: 100%; justify-content: center; }
+  figure img { width: 100%; height: auto; max-height: 4.7in; object-fit: contain; border: 1px solid var(--line); border-radius: 8px; }
+  figcaption { font-size: 10pt; color: var(--muted); margin-top: 9px; line-height: 1.4; text-align: center; }
+
+  /* result band on slide 3 */
+  .result {
+    display: flex; align-items: center; gap: 18px; margin: 10px 0 6px;
+    background: linear-gradient(90deg,#1b2a4a 0%, #21407a 100%); color:#fff;
+    border-radius: 12px; padding: 14px 22px;
+  }
+  .result .from { font-size: 18pt; opacity: .72; }
+  .result .arrow { font-size: 20pt; opacity: .55; }
+  .result .to { font-size: 34pt; font-weight: 800; color: #ffd24d; line-height: 1; }
+  .result .rl { font-size: 9.5pt; opacity:.8; display:block; margin-top:4px; }
+  .takeaway {
+    margin-top: auto; font-size: 13.5pt; color: var(--ink); font-weight: 700;
+    background: #eafaf1; border-left: 5px solid var(--accent); border-radius: 6px;
+    padding: 12px 16px; line-height: 1.35;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== SLIDE 1 ===================== -->
+<section class="slide">
+  <div class="topbar">
+    <span class="kicker">Yessenov Data Lab · Защита проекта · Kaggle</span>
+    <span class="pageno">01 / 03</span>
+  </div>
+
+  <div class="cover-body">
+    <div class="kicker" style="color:var(--accent)">Машинное обучение · многоклассовая классификация</div>
+    <h1>Классификация стадий сна</h1>
+    <div class="sub">Определить стадию сна для каждой 30-секундной эпохи ночи по сигналам тела</div>
+
+    <p class="cover-desc">
+      Лаборатория сна записывает ночь сразу несколькими каналами — мозговые волны (EEG),
+      тонус мышц (EMG), движения глаз (EOG), пульс, дыхание и кислород в крови.
+      По этим показаниям модель должна определить, в какой стадии сна находится человек
+      в каждый 30-секундный отрезок.
+    </p>
+
+    <div class="chips">
+      <span class="chip">Бодрствование</span>
+      <span class="chip">Лёгкий сон</span>
+      <span class="chip">Глубокий сон</span>
+      <span class="chip">REM</span>
+    </div>
+
+    <div class="statband">
+      <div class="cell"><div class="big">4</div><span class="lbl">класса сна</span></div>
+      <div class="cell"><div class="big small">9 000 &rarr; 5 000</div><span class="lbl">эпох: обучение &rarr; предсказание</span></div>
+      <div class="cell"><div class="big small">macro-F1</div><span class="lbl">метрика: все классы равны</span></div>
+    </div>
+
+    <p class="hard">
+      Границы стадий размыты — даже опытные сомнологи расходятся в оценке одной эпохи.
+      Идеальная точность здесь недостижима, а судьбу результата решает самый слабый класс.
+    </p>
+
+    <div class="byline">
+      Автор: <b>Расул Зейнулла</b> &nbsp;·&nbsp; Воспроизводимый пайплайн: 11 ноутбуков, один запуск <b>run_all.py</b>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SLIDE 2 ===================== -->
+<section class="slide">
+  <div class="topbar">
+    <span class="section-tag">Подход</span>
+    <span class="pageno">02 / 03</span>
+  </div>
+
+  <div class="body2">
+    <div class="col-text">
+      <h2>Сильная модель —<br>и непохожий союзник</h2>
+      <div class="lead">Прорыв дала не более мощная модель, а модель, которая ошибается иначе.</div>
+      <ul class="points">
+        <li><span class="num">1.</span> &nbsp;<b>База — CatBoost</b> (градиентный бустинг на деревьях): честная 5-блочная кросс-валидация, физиологичные признаки, нативная работа с 50% пропусков в EOG-канале.</li>
+        <li><span class="num">2.</span> &nbsp;<b>Деревья упёрлись в ~0.829.</b> Ансамбли из деревьев (RandomForest, ExtraTrees, GradientBoosting) не помогали — они ошибаются на одних и тех же эпохах.</li>
+        <li><span class="num">3.</span> &nbsp;<b>Ключ — другое семейство:</b> SVM с RBF-ядром. Гладкая изогнутая граница вместо «лесенки» деревьев. Корреляция ошибок с CatBoost — лишь <b>0.76</b> против ~0.9 у однотипных моделей.</li>
+        <li><span class="num">4.</span> &nbsp;<b>Финал — простой ансамбль</b> 0.5 · CatBoost + 0.5 · SVM. Веса зафиксированы заранее, без подгонки под данные.</li>
+      </ul>
+    </div>
+
+    <div class="col-fig wide">
+      <figure>
+        <img src="__FIG2__" alt="Сильный и непохожий союзник">
+        <figcaption>Полезный союзник обязан быть и <b>сильным</b> (правее), и <b>непохожим</b> (ниже). В нужную зону попали только SVM и нейросеть; деревья слишком похожи, а простые модели слишком слабы.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SLIDE 3 ===================== -->
+<section class="slide">
+  <div class="topbar">
+    <span class="section-tag" style="background:var(--blue)">Результат</span>
+    <span class="pageno">03 / 03</span>
+  </div>
+
+  <div class="body2">
+    <div class="col-fig">
+      <figure>
+        <img src="__FIG3__" alt="Публичный лидерборд">
+        <figcaption>Публичный лидерборд (30% теста): кросс-семейный ансамбль заметно опережает любую одиночную или древесную модель.</figcaption>
+      </figure>
+    </div>
+
+    <div class="col-text narrow">
+      <h2>Кросс-семейный ансамбль<br>пробил стену</h2>
+
+      <div class="result">
+        <div><span class="from">0.825</span><span class="rl">базовый CatBoost</span></div>
+        <span class="arrow">&rarr;</span>
+        <div><span class="to">0.84157</span><span class="rl">лучший результат · public leaderboard</span></div>
+      </div>
+
+      <ul class="points">
+        <li><b>Честный выбор:</b> решение отбиралось по OOF-кросс-валидации, а не по публичному лидерборду — итог решают скрытые 70% теста.</li>
+        <li><b>Парная CV:</b> +0.0116 к одиночному CatBoost, выигрыш стабилен во всех повторах.</li>
+        <li><b>Поднялся слабый класс</b> — Глубокий сон (N3): F1 <b>0.777 &rarr; 0.785</b>.</li>
+        <li><b>Воспроизводимость:</b> фиксированные сиды, один запуск, бит-в-бит одинаковый результат.</li>
+      </ul>
+
+      <div class="takeaway">
+        Стена 0.83 была пределом одного семейства моделей — не пределом данных.
+      </div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

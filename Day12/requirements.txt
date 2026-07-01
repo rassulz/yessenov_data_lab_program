@@ -1,0 +1,14 @@
+# Core deps (install in your Anaconda env: pip install -r requirements.txt)
+open_clip_torch
+datasets
+umap-learn
+streamlit
+pillow
+tqdm
+matplotlib
+numpy
+
+# torch is NOT pinned here on purpose: on Windows, plain `pip install torch` is CPU-only.
+# For the GPU (RTX 3050, Python 3.10+), install the CUDA build FIRST, separately:
+#   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+# (older driver? swap cu128 -> cu126). On CPU-only, `pip install torch torchvision` is fine.

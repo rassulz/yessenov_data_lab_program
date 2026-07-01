@@ -1,0 +1,822 @@
+[
+ {
+  "query": "a dog running on the beach",
+  "results": [
+   {
+    "rank": 1,
+    "score": 0.347,
+    "caption": "A white dog is running down a rocky beach.",
+    "path": "images/img_00172.jpg"
+   },
+   {
+    "rank": 2,
+    "score": 0.327,
+    "caption": "A dog running at the beach in front of the ocean and a bright blue cloudy sky.",
+    "path": "images/img_01340.jpg"
+   },
+   {
+    "rank": 3,
+    "score": 0.327,
+    "caption": "A black lav runs into the water on the beach, with swimmers in the distance and sea kelp in the foreground.",
+    "path": "images/img_00397.jpg"
+   },
+   {
+    "rank": 4,
+    "score": 0.323,
+    "caption": "A black dog is coming out of the ocean water on the beach with something in its mouth.",
+    "path": "images/img_01283.jpg"
+   },
+   {
+    "rank": 5,
+    "score": 0.321,
+    "caption": "A brown dog on a leash runs through the white water.",
+    "path": "images/img_01105.jpg"
+   },
+   {
+    "rank": 6,
+    "score": 0.32,
+    "caption": "Two dogs run towards each other on a rocky area with water in the background.",
+    "path": "images/img_00170.jpg"
+   }
+  ]
+ },
+ {
+  "query": "a group of people laughing",
+  "results": [
+   {
+    "rank": 1,
+    "score": 0.299,
+    "caption": "Woman wearing a striped blouse sits among other women.",
+    "path": "images/img_01478.jpg"
+   },
+   {
+    "rank": 2,
+    "score": 0.289,
+    "caption": "A woman in a white dress, a man in a green shirt, three other people and a child are visiting inside a home.",
+    "path": "images/img_01413.jpg"
+   },
+   {
+    "rank": 3,
+    "score": 0.288,
+    "caption": "A multicultural group of friends sitting down in an outdoor floor and hanging out to together during a cold busy night.",
+    "path": "images/img_01232.jpg"
+   },
+   {
+    "rank": 4,
+    "score": 0.278,
+    "caption": "Three people dressed in white clothing in caps giving three other people dressed in white clothing and caps a piggyback ride.",
+    "path": "images/img_00594.jpg"
+   },
+   {
+    "rank": 5,
+    "score": 0.276,
+    "caption": "A group of people posing for a picture in front of a tree and building.",
+    "path": "images/img_01227.jpg"
+   },
+   {
+    "rank": 6,
+    "score": 0.274,
+    "caption": "Four men with baseball caps and logo t-shirts laughing together at a table.",
+    "path": "images/img_00444.jpg"
+   }
+  ]
+ },
+ {
+  "query": "children playing soccer",
+  "results": [
+   {
+    "rank": 1,
+    "score": 0.306,
+    "caption": "There are three young boys playing in a public park with a red ball.",
+    "path": "images/img_00551.jpg"
+   },
+   {
+    "rank": 2,
+    "score": 0.305,
+    "caption": "Two boys, one with a yellow and orange ball, play in some water in front of a field.",
+    "path": "images/img_00166.jpg"
+   },
+   {
+    "rank": 3,
+    "score": 0.302,
+    "caption": "A child in a black cape is being chased by other children.",
+    "path": "images/img_00891.jpg"
+   },
+   {
+    "rank": 4,
+    "score": 0.3,
+    "caption": "A little boy wearing a purple shirt and blue jeans kicking a ball on the grass.",
+    "path": "images/img_00552.jpg"
+   },
+   {
+    "rank": 5,
+    "score": 0.291,
+    "caption": "Two little boys in yellow shirts are walking in grass and looking behind them.",
+    "path": "images/img_00842.jpg"
+   },
+   {
+    "rank": 6,
+    "score": 0.286,
+    "caption": "The little boy in red trunks is attempting to catch a soccer ball that is coming towards him.",
+    "path": "images/img_01329.jpg"
+   }
+  ]
+ },
+ {
+  "query": "a person riding a bicycle",
+  "results": [
+   {
+    "rank": 1,
+    "score": 0.305,
+    "caption": "A man in a red long-sleeved shirt bikes over a body of water on a bridge.",
+    "path": "images/img_00059.jpg"
+   },
+   {
+    "rank": 2,
+    "score": 0.304,
+    "caption": "A man in the foreground wearing a white shirt and black pants riding a bicycle with a basket in a busy street.",
+    "path": "images/img_00135.jpg"
+   },
+   {
+    "rank": 3,
+    "score": 0.3,
+    "caption": "A bike rider with khaki green shorts, a blue shirt, backpack and helmet is riding on the street near a red station wagon that is missing a hubcap on the back drivers side.",
+    "path": "images/img_00840.jpg"
+   },
+   {
+    "rank": 4,
+    "score": 0.299,
+    "caption": "The \"white out\" conditions of snow on the ground seem to almost obliverate the details of a man dressed for the cold weather in a heavy jacket and red hat riding a bicycle in a suburban neighborhood.",
+    "path": "images/img_00036.jpg"
+   },
+   {
+    "rank": 5,
+    "score": 0.296,
+    "caption": "A rider in a red shirt rides his or her bike next to an outdoor fountain.",
+    "path": "images/img_00835.jpg"
+   },
+   {
+    "rank": 6,
+    "score": 0.29,
+    "caption": "A woman in a blue vest and a sky blue helmet stands with her bicycle in traffic.",
+    "path": "images/img_00430.jpg"
+   }
+  ]
+ },
+ {
+  "query": "a man playing a guitar",
+  "results": [
+   {
+    "rank": 1,
+    "score": 0.305,
+    "caption": "A man in jeans and sandals sits outside near trees and a goose and plays a string instrument.",
+    "path": "images/img_00978.jpg"
+   },
+   {
+    "rank": 2,
+    "score": 0.304,
+    "caption": "Man wearing a black fedora hat, blue shirt, strumming an electric guitar with rhythm slider on his left pinkie finger.",
+    "path": "images/img_01177.jpg"
+   },
+   {
+    "rank": 3,
+    "score": 0.301,
+    "caption": "A street performer strumming on his guitar, waiting for people to toss him tips.",
+    "path": "images/img_00711.jpg"
+   },
+   {
+    "rank": 4,
+    "score": 0.295,
+    "caption": "A man wearing sunglasses playing a silver guitar.",
+    "path": "images/img_00649.jpg"
+   },
+   {
+    "rank": 5,
+    "score": 0.288,
+    "caption": "A man with long hair and a beanie is posing with a guitar.",
+    "path": "images/img_01354.jpg"
+   },
+   {
+    "rank": 6,
+    "score": 0.286,
+    "caption": "A man with a mustache and wearing a hat is holding a black guitar.",
+    "path": "images/img_01431.jpg"
+   }
+  ]
+ },
+ {
+  "query": "a woman reading a book",
+  "results": [
+   {
+    "rank": 1,
+    "score": 0.315,
+    "caption": "A young female is sitting in a chair on the beach, while reading a book with her feet in the sand.",
+    "path": "images/img_00596.jpg"
+   },
+   {
+    "rank": 2,
+    "score": 0.298,
+    "caption": "A girl sitting on the steps of a building wearing a green short-sleeve shirt, blue jeans, flip-flops holding a cup and writing in a journal with her purse sitting at her feet.",
+    "path": "images/img_00248.jpg"
+   },
+   {
+    "rank": 3,
+    "score": 0.285,
+    "caption": "A woman in a white jacket and pink shorts is sitting down, reading a book with her head resting on her right hand.",
+    "path": "images/img_01351.jpg"
+   },
+   {
+    "rank": 4,
+    "score": 0.279,
+    "caption": "A blond woman wearing glasses and a gray sweatshirt is cutting something with scissors.",
+    "path": "images/img_00564.jpg"
+   },
+   {
+    "rank": 5,
+    "score": 0.275,
+    "caption": "A person sitting on a ledge with a letter in their hands.",
+    "path": "images/img_01114.jpg"
+   },
+   {
+    "rank": 6,
+    "score": 0.268,
+    "caption": "Small girl in a teal dress on the arm of a chair reaching for a floor lamp.",
+    "path": "images/img_01372.jpg"
+   }
+  ]
+ },
+ {
+  "query": "a snowy mountain landscape",
+  "results": [
+   {
+    "rank": 1,
+    "score": 0.256,
+    "caption": "Crosscountry skiers are traveling towards the mountains at sunset.",
+    "path": "images/img_00806.jpg"
+   },
+   {
+    "rank": 2,
+    "score": 0.252,
+    "caption": "A skier is overlooking the beautiful white snow covered landscape.",
+    "path": "images/img_00188.jpg"
+   },
+   {
+    "rank": 3,
+    "score": 0.233,
+    "caption": "A lone skier is making their way up a mountain.",
+    "path": "images/img_00245.jpg"
+   },
+   {
+    "rank": 4,
+    "score": 0.231,
+    "caption": "Two people standing on top of a rock in the middle of snow and cloud.",
+    "path": "images/img_01462.jpg"
+   },
+   {
+    "rank": 5,
+    "score": 0.224,
+    "caption": "A person in a red and black ski outfit is looking over a snowy, mountainous landscape.",
+    "path": "images/img_00774.jpg"
+   },
+   {
+    "rank": 6,
+    "score": 0.22,
+    "caption": "A snowboarder wearing green pants doing a trick on a high bench",
+    "path": "images/img_01249.jpg"
+   }
+  ]
+ },
+ {
+  "query": "a city street at night",
+  "results": [
+   {
+    "rank": 1,
+    "score": 0.286,
+    "caption": "A busy city scene with colorful lighted buildings and a lot of people walking on the street.",
+    "path": "images/img_00719.jpg"
+   },
+   {
+    "rank": 2,
+    "score": 0.262,
+    "caption": "A couple attempting to cross a street, while a car zooms past.",
+    "path": "images/img_01129.jpg"
+   },
+   {
+    "rank": 3,
+    "score": 0.241,
+    "caption": "Many people are walking along a sidewalk with a variety of little shops.",
+    "path": "images/img_01305.jpg"
+   },
+   {
+    "rank": 4,
+    "score": 0.24,
+    "caption": "A night street scene with a line of people waiting for something in a dome.",
+    "path": "images/img_01235.jpg"
+   },
+   {
+    "rank": 5,
+    "score": 0.235,
+    "caption": "A man in a green shirt and backpack is standing under cover along with a woman behind him taking a picture.",
+    "path": "images/img_01236.jpg"
+   },
+   {
+    "rank": 6,
+    "score": 0.223,
+    "caption": "A group of construction workers dressed in orange safety vest sit on the ground assembling a railroad track.",
+    "path": "images/img_00225.jpg"
+   }
+  ]
+ },
+ {
+  "query": "people sitting around a campfire",
+  "results": [
+   {
+    "rank": 1,
+    "score": 0.287,
+    "caption": "This is an aerial shot of people sitting outside in chairs on a patio and drinking.",
+    "path": "images/img_01440.jpg"
+   },
+   {
+    "rank": 2,
+    "score": 0.271,
+    "caption": "Four women and one man sitting on the sidewalk with sleeping bags.",
+    "path": "images/img_01228.jpg"
+   },
+   {
+    "rank": 3,
+    "score": 0.268,
+    "caption": "A multicultural group of friends sitting down in an outdoor floor and hanging out to together during a cold busy night.",
+    "path": "images/img_01232.jpg"
+   },
+   {
+    "rank": 4,
+    "score": 0.259,
+    "caption": "A group of people sit around a table outside on a porch at night.",
+    "path": "images/img_00208.jpg"
+   },
+   {
+    "rank": 5,
+    "score": 0.258,
+    "caption": "A group of people on a riverbank some sitting on the grass some standing.",
+    "path": "images/img_00221.jpg"
+   },
+   {
+    "rank": 6,
+    "score": 0.238,
+    "caption": "Four young Asian boys hold bowls and chopsticks as they stand around a barbecue.",
+    "path": "images/img_00654.jpg"
+   }
+  ]
+ },
+ {
+  "query": "a plate of food on a table",
+  "results": [
+   {
+    "rank": 1,
+    "score": 0.252,
+    "caption": "A Caucasian young woman in a white hooded sweatshirt sits at a table set for two in a lowly lit restaurant.",
+    "path": "images/img_00121.jpg"
+   },
+   {
+    "rank": 2,
+    "score": 0.236,
+    "caption": "White wine and appetizers on are displayed in an upscale restaurant.",
+    "path": "images/img_00163.jpg"
+   },
+   {
+    "rank": 3,
+    "score": 0.223,
+    "caption": "Blond-haired woman pulling apart a watermelon, sitting atop a marble table.",
+    "path": "images/img_00802.jpg"
+   },
+   {
+    "rank": 4,
+    "score": 0.216,
+    "caption": "A young woman wearing glasses is eating a piece of chicken.",
+    "path": "images/img_01436.jpg"
+   },
+   {
+    "rank": 5,
+    "score": 0.214,
+    "caption": "At a table in a restaurant, a girl is trying to get a little boy to eat.",
+    "path": "images/img_01470.jpg"
+   },
+   {
+    "rank": 6,
+    "score": 0.212,
+    "caption": "Several asian people are eating together around a table.",
+    "path": "images/img_00140.jpg"
+   }
+  ]
+ },
+ {
+  "query": "two dogs playing together",
+  "results": [
+   {
+    "rank": 1,
+    "score": 0.326,
+    "caption": "Two dogs are playing rough in a green field of grass.",
+    "path": "images/img_00608.jpg"
+   },
+   {
+    "rank": 2,
+    "score": 0.323,
+    "caption": "A yellow dog and a black and white dog are running in the dirt.",
+    "path": "images/img_00272.jpg"
+   },
+   {
+    "rank": 3,
+    "score": 0.32,
+    "caption": "Two dogs are standing next to each other, and the white dog has a stick in its mouth.",
+    "path": "images/img_01467.jpg"
+   },
+   {
+    "rank": 4,
+    "score": 0.319,
+    "caption": "A gray dog beside a black and white dog running in green grass.",
+    "path": "images/img_00505.jpg"
+   },
+   {
+    "rank": 5,
+    "score": 0.319,
+    "caption": "A white and black dog and a brown dog in sandy terrain.",
+    "path": "images/img_00195.jpg"
+   },
+   {
+    "rank": 6,
+    "score": 0.318,
+    "caption": "The Chocolate Lab jumps too late to get the toy as the Black Lab captures it in the driveway.",
+    "path": "images/img_00105.jpg"
+   }
+  ]
+ },
+ {
+  "query": "a baby smiling",
+  "results": [
+   {
+    "rank": 1,
+    "score": 0.316,
+    "caption": "A little baby dressed in green and yellow wearing a bib cries.",
+    "path": "images/img_00454.jpg"
+   },
+   {
+    "rank": 2,
+    "score": 0.301,
+    "caption": "An adult female with dark hair is holding a baby.",
+    "path": "images/img_00907.jpg"
+   },
+   {
+    "rank": 3,
+    "score": 0.299,
+    "caption": "Baby boy giggles while he tries to get up on his feet supported by a couch in a living room filled with toys.",
+    "path": "images/img_01355.jpg"
+   },
+   {
+    "rank": 4,
+    "score": 0.279,
+    "caption": "A little toddler boy is crying while walking.",
+    "path": "images/img_00477.jpg"
+   },
+   {
+    "rank": 5,
+    "score": 0.273,
+    "caption": "The blond boy wearing a striped shirt is walking through the grass.",
+    "path": "images/img_01184.jpg"
+   },
+   {
+    "rank": 6,
+    "score": 0.262,
+    "caption": "A child in front of his own reflection turning towards the camera and smiling.",
+    "path": "images/img_01133.jpg"
+   }
+  ]
+ },
+ {
+  "query": "a person swimming in the water",
+  "results": [
+   {
+    "rank": 1,
+    "score": 0.311,
+    "caption": "A small child in water with a splash encircling him while the white clouds float over the mountains.",
+    "path": "images/img_00754.jpg"
+   },
+   {
+    "rank": 2,
+    "score": 0.287,
+    "caption": "Two swimmers race in a pool with a red line between them.",
+    "path": "images/img_00872.jpg"
+   },
+   {
+    "rank": 3,
+    "score": 0.278,
+    "caption": "A shirtless man jumping off a large concrete structure into a river with his friends watching from the structure.",
+    "path": "images/img_00264.jpg"
+   },
+   {
+    "rank": 4,
+    "score": 0.278,
+    "caption": "A shirtless man in a blue hat and sunglasses runs waist-deep through a large body of water.",
+    "path": "images/img_01176.jpg"
+   },
+   {
+    "rank": 5,
+    "score": 0.274,
+    "caption": "A smiling boy swims underwater in a pool.",
+    "path": "images/img_00278.jpg"
+   },
+   {
+    "rank": 6,
+    "score": 0.272,
+    "caption": "A black lab with tags frolicks in the water.",
+    "path": "images/img_00082.jpg"
+   }
+  ]
+ },
+ {
+  "query": "a construction worker",
+  "results": [
+   {
+    "rank": 1,
+    "score": 0.315,
+    "caption": "A construction worker in jeans is standing on a scaffold holding on to a metal frame with a city backdrop.",
+    "path": "images/img_00453.jpg"
+   },
+   {
+    "rank": 2,
+    "score": 0.31,
+    "caption": "A man wearing a hat and a white shirt is cleaning windows.",
+    "path": "images/img_00137.jpg"
+   },
+   {
+    "rank": 3,
+    "score": 0.3,
+    "caption": "A man in a white t-shirt and jeans standing on a scaffold outside a building.",
+    "path": "images/img_01010.jpg"
+   },
+   {
+    "rank": 4,
+    "score": 0.294,
+    "caption": "A construction site on a street with three men working.",
+    "path": "images/img_00096.jpg"
+   },
+   {
+    "rank": 5,
+    "score": 0.293,
+    "caption": "A construction worker standing on the roof of a house wearing an orange vest with a yellow hard hat.",
+    "path": "images/img_00366.jpg"
+   },
+   {
+    "rank": 6,
+    "score": 0.292,
+    "caption": "A skateboarder in a red baseball cap, black shirt and tan shorts skates alone in a wide open space.",
+    "path": "images/img_00776.jpg"
+   }
+  ]
+ },
+ {
+  "query": "a red sports car",
+  "results": [
+   {
+    "rank": 1,
+    "score": 0.266,
+    "caption": "A man in a black coat walks past a red spaceship with a parking ticket stuck to its window.",
+    "path": "images/img_00069.jpg"
+   },
+   {
+    "rank": 2,
+    "score": 0.246,
+    "caption": "A red race car marked with the number seven is driven by a man in a blue and beige shirt.",
+    "path": "images/img_01144.jpg"
+   },
+   {
+    "rank": 3,
+    "score": 0.244,
+    "caption": "A person in a red car, with a bridge in the background.",
+    "path": "images/img_00764.jpg"
+   },
+   {
+    "rank": 4,
+    "score": 0.197,
+    "caption": "Twin toddlers dressed alike being pushed in plastic car strollers in a parade",
+    "path": "images/img_00540.jpg"
+   },
+   {
+    "rank": 5,
+    "score": 0.194,
+    "caption": "A young girl in a black shirt and a blue helmet is sitting on a quad, or four wheeler, with her right hand on the handlebars.",
+    "path": "images/img_00844.jpg"
+   },
+   {
+    "rank": 6,
+    "score": 0.191,
+    "caption": "Two little blond girls in helmets are sitting on a red ATV.",
+    "path": "images/img_00845.jpg"
+   }
+  ]
+ },
+ {
+  "query": "someone jumping in the air",
+  "results": [
+   {
+    "rank": 1,
+    "score": 0.322,
+    "caption": "A male adolescent or young teenager is wearing camouflaged shorts or long swim trunks and is upside down over a body of water like a lake or reservoir whose cement walls and graveled top appear in the corner.",
+    "path": "images/img_00899.jpg"
+   },
+   {
+    "rank": 2,
+    "score": 0.322,
+    "caption": "The girl wearing the pink and white shirt and shorts is jumping in the sand.",
+    "path": "images/img_01388.jpg"
+   },
+   {
+    "rank": 3,
+    "score": 0.32,
+    "caption": "There is a man, just before nightfall, jumping from one mountain of rocks to another.",
+    "path": "images/img_00975.jpg"
+   },
+   {
+    "rank": 4,
+    "score": 0.316,
+    "caption": "A young girl jumping off a concrete block, with her arms and hands in the air, above her head.",
+    "path": "images/img_00799.jpg"
+   },
+   {
+    "rank": 5,
+    "score": 0.313,
+    "caption": "The small red-haired girl jumps on the trampoline under the tree by the shed.",
+    "path": "images/img_01100.jpg"
+   },
+   {
+    "rank": 6,
+    "score": 0.303,
+    "caption": "A boy wearing no shirt and some blue jeans is jumping in the air in the woods.",
+    "path": "images/img_01106.jpg"
+   }
+  ]
+ },
+ {
+  "query": "a street performer",
+  "results": [
+   {
+    "rank": 1,
+    "score": 0.341,
+    "caption": "Man playing musical instrument standing beside a yellow and red fire hydrant",
+    "path": "images/img_01087.jpg"
+   },
+   {
+    "rank": 2,
+    "score": 0.34,
+    "caption": "A street performer strumming on his guitar, waiting for people to toss him tips.",
+    "path": "images/img_00711.jpg"
+   },
+   {
+    "rank": 3,
+    "score": 0.336,
+    "caption": "Puppeteer wearing a purple sleeveless shirt showing off a puppet that looks like a black man with shades playing a saxophone.",
+    "path": "images/img_00942.jpg"
+   },
+   {
+    "rank": 4,
+    "score": 0.335,
+    "caption": "A varied crowd mills about (or rough-houses) on a public street, with lots of bicycles on display.",
+    "path": "images/img_00758.jpg"
+   },
+   {
+    "rank": 5,
+    "score": 0.332,
+    "caption": "Several men dressed in cowboy boots and hats are hanging around, and one man is getting his shoes shined.",
+    "path": "images/img_01304.jpg"
+   },
+   {
+    "rank": 6,
+    "score": 0.332,
+    "caption": "A young male wearing a red shirt and black pants is performing a dance technique in a terminal station for travelers.",
+    "path": "images/img_01045.jpg"
+   }
+  ]
+ },
+ {
+  "query": "a crowd at a concert",
+  "results": [
+   {
+    "rank": 1,
+    "score": 0.272,
+    "caption": "A couple wearing brown shirts face away to watch an outdoor concert.",
+    "path": "images/img_01259.jpg"
+   },
+   {
+    "rank": 2,
+    "score": 0.269,
+    "caption": "A group of people attending either a concert or a party.",
+    "path": "images/img_00735.jpg"
+   },
+   {
+    "rank": 3,
+    "score": 0.265,
+    "caption": "Four police officers are swallowed up by the large crowd of people on the street.",
+    "path": "images/img_01310.jpg"
+   },
+   {
+    "rank": 4,
+    "score": 0.263,
+    "caption": "A group of people are standing outside at a carnival, near a ride called the Green Jungle.",
+    "path": "images/img_00382.jpg"
+   },
+   {
+    "rank": 5,
+    "score": 0.246,
+    "caption": "A woman in a blue shirt with a blue bag passes by a large yard sale with colorful clothes, adults and children within.",
+    "path": "images/img_00496.jpg"
+   },
+   {
+    "rank": 6,
+    "score": 0.244,
+    "caption": "Young individuals in uniforms are gathering under the flags of several different countries.",
+    "path": "images/img_00302.jpg"
+   }
+  ]
+ },
+ {
+  "query": "a person climbing a rock",
+  "results": [
+   {
+    "rank": 1,
+    "score": 0.314,
+    "caption": "There is a man, just before nightfall, jumping from one mountain of rocks to another.",
+    "path": "images/img_00975.jpg"
+   },
+   {
+    "rank": 2,
+    "score": 0.31,
+    "caption": "A climber in an orange helmet is ascending attached to a rope whilst climbing a rock face.",
+    "path": "images/img_01336.jpg"
+   },
+   {
+    "rank": 3,
+    "score": 0.31,
+    "caption": "The young man with the white t-shirt and jeans is rappeling up the rock wall.",
+    "path": "images/img_00341.jpg"
+   },
+   {
+    "rank": 4,
+    "score": 0.305,
+    "caption": "A woman in a yellow shirt and green shorts is climbing an artificial red wall whilst wearing a safety harness.",
+    "path": "images/img_00235.jpg"
+   },
+   {
+    "rank": 5,
+    "score": 0.296,
+    "caption": "A climber wearing a blue helmet and headlamp is attached to a rope on the rock face.",
+    "path": "images/img_00342.jpg"
+   },
+   {
+    "rank": 6,
+    "score": 0.295,
+    "caption": "A climber is attempting to climb around an overhang above the woods.",
+    "path": "images/img_01198.jpg"
+   }
+  ]
+ },
+ {
+  "query": "a horse in a field",
+  "results": [
+   {
+    "rank": 1,
+    "score": 0.246,
+    "caption": "A brown dog stands in a lush field with the stunning clouds and mountains behind it.",
+    "path": "images/img_01005.jpg"
+   },
+   {
+    "rank": 2,
+    "score": 0.234,
+    "caption": "A man in a blue tee-shirt, wearing a cap, is riding a white horse down a dirt road, in a rural setting of grass and hills.",
+    "path": "images/img_00566.jpg"
+   },
+   {
+    "rank": 3,
+    "score": 0.231,
+    "caption": "A black dog is running across a low cut field nearby an area of trees.",
+    "path": "images/img_01026.jpg"
+   },
+   {
+    "rank": 4,
+    "score": 0.225,
+    "caption": "A brown dog running through the grass and flowers.",
+    "path": "images/img_00546.jpg"
+   },
+   {
+    "rank": 5,
+    "score": 0.225,
+    "caption": "A brown horse is nuzzling a smiling woman's neck as her hair blows in the wind.",
+    "path": "images/img_00953.jpg"
+   },
+   {
+    "rank": 6,
+    "score": 0.221,
+    "caption": "A blond horse and a blond girl in a black sweatshirt are staring at a fire in a barrel.",
+    "path": "images/img_00224.jpg"
+   }
+  ]
+ }
+]
